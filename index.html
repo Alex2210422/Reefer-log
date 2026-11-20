@@ -385,7 +385,7 @@ const I18N={
 ru:{sub_empty:"Список риферов пуст",done_lbl:"сделано",vessel:"Судно",round:"Обход",searchPh:"Последние цифры или позиция",settings:"Настройки",back:"Назад",
 fNot:"Не отмечены",fDone:"Отмечены",fAlarm:"Алармы",fAll:"Все",
 empty_h:"Список риферов пуст",empty_p:"Список загружает офицер: шестерёнка → «Для офицера» → «Загрузить список».",empty_btn:"Открыть настройки",
-nf_search:"Ничего не найдено.",nf_todo:"Все риферы этого обхода записаны.",nf_done:"В этом обходе ещё ничего не записано.",nf_flag:"Нет алармов и отметок.",fDev:"Отклонения",nf_dev:"В обходе {0} нет отклонений supply от set point больше {1}.",
+nf_search:"Ничего не найдено.",nf_todo:"Все риферы этого обхода записаны.",nf_done:"В этом обходе ещё ничего не записано.",nf_flag:"В этом обходе нет алармов и отметок.",fDev:"Отклонения",nf_dev:"В обходе {0} нет отклонений supply от set point больше {1}.",
 notrec:"не записан",alarm:"Аларм",mark:"Марк",pos:"Поз.",of:"из",
 shot:"Сфотографировать дисплей",zoom:"Приблизить",full:"Весь кадр",hintZoom:"Обведите пальцем экран рифера, чтобы приблизить",hintPick:"Обведите пальцем число {0} на фото",
 remarks:"Примечания",rmPh:"Попадёт в колонку REMARKS/ALARMS",recheck:"+ Перепроверка с текущим временем",clear:"Очистить показания этого обхода",
@@ -413,7 +413,7 @@ prevC:"Ранее переведено из °C ({0}).",cIn:"Ввод в °C. В
 en:{sub_empty:"Reefer list is empty",done_lbl:"done",vessel:"Vessel",round:"Round",searchPh:"Last digits or position",settings:"Settings",back:"Back",
 fNot:"Not done",fDone:"Done",fAlarm:"Alarms",fAll:"All",
 empty_h:"Reefer list is empty",empty_p:"The officer loads the list: gear → “Officer” → “Load list”.",empty_btn:"Open settings",
-nf_search:"Nothing found.",nf_todo:"All reefers of this round are recorded.",nf_done:"Nothing recorded in this round yet.",nf_flag:"No alarms or marks.",fDev:"Off set point",nf_dev:"Round {0}: no supply more than {1} off set point.",
+nf_search:"Nothing found.",nf_todo:"All reefers of this round are recorded.",nf_done:"Nothing recorded in this round yet.",nf_flag:"No alarms or marks in this round.",fDev:"Off set point",nf_dev:"Round {0}: no supply more than {1} off set point.",
 notrec:"not recorded",alarm:"Alarm",mark:"Mark",pos:"Pos.",of:"of",
 shot:"Photograph display",zoom:"Zoom",full:"Full frame",hintZoom:"Outline the reefer screen with your finger to zoom",hintPick:"Outline the {0} number on the photo",
 remarks:"Remarks",rmPh:"Goes to the REMARKS/ALARMS column",recheck:"+ Recheck with current time",clear:"Clear this round's readings",
@@ -481,6 +481,7 @@ function spText(r){if(!r.sp)return r.spRaw||"—";const f=spF(r);return P.unit==
 // supply minus set point (°F) for a round, only when it is beyond the tolerance from settings
 function devOf(r,slot){const x=reading(r,slot),sp=spF(r);if(!x||x.sup==null||sp==null)return null;const d=r1(x.sup-sp),tol=parseFloat(S.meta.tol)||3;return Math.abs(d)>tol?d:null}
 function tolText(){const tol=parseFloat(S.meta.tol)||3;return P.unit==="C"?fmt(r1(tol*5/9))+" °C":fmtSp(tol)+" °F"}
+function flagIn(r,slot){return!!((r.alarm&&r.alarm.slot===slot)||(r.mark&&r.mark.slot===slot))}
 function isFrozen(r){const f=spF(r);return f!=null&&f<=14}
 function reading(r,slot){return(r.readings&&r.readings[slot])||null}
 function isDone(r,slot){const x=reading(r,slot);return!!(x&&(x.sup!=null||x.ret!=null))}
@@ -698,13 +699,14 @@ function renderList(){
   }
   else if(filter==="todo")items=items.filter(r=>!isDone(r,S.slot));
   else if(filter==="done")items=items.filter(r=>isDone(r,S.slot));
-  else if(filter==="flag")items=items.filter(r=>r.alarm||r.mark);
+  else if(filter==="flag")items=items.filter(r=>flagIn(r,S.slot));
   else if(filter==="dev")items=items.filter(r=>devOf(r,S.slot)!=null);
   if(!items.length){el.innerHTML=`<div class="empty"><p>${q?t("nf_search"):filter==="todo"?t("nf_todo"):filter==="done"?t("nf_done"):filter==="dev"?t("nf_dev",SLOTS[S.slot].label,tolText()):t("nf_flag")}</p></div>`;return}
   el.innerHTML=items.map(r=>{
     const x=reading(r,S.slot);const done=isDone(r,S.slot);
     const cls=["item",r.alarm?"alarm":r.mark?"mark":done?"done":""].join(" ");
-    const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}</span>`:"");
+    const sl=f=>f&&f.slot&&SLOTS[f.slot]?" "+SLOTS[f.slot].label:"";
+    const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}${sl(r.alarm)}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}${sl(r.mark)}</span>`:"");
     const dv=devOf(r,S.slot);
     const vals=done?`<div${dv!=null?' class="devv"':""}><span class="lbl">Supply</span>${fmt(dU(x.sup))}${dv!=null?` <b>Δ${dv>0?"+":"−"}${fmt(Math.abs(P.unit==="C"?dv*5/9:dv))}</b>`:""}</div><div><span class="lbl">Return</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
     return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span class="spb${isFrozen(r)?" frozen":""}">SP ${esc(spText(r))}</span>${tags}</span></button>`;
@@ -784,8 +786,9 @@ function commit(){
   cur.readings=cur.readings||{};
   if(sup==null&&ret==null)delete cur.readings[S.slot];
   else cur.readings[S.slot]={sup,ret,fromC,cRaw,at:nowHM(),src:lastBlob?"photo":"manual"};
-  cur.alarm=draft.alarm?{code:$("#alCode").value.trim(),text:$("#alText").value.trim()}:null;
-  cur.mark=draft.mark?{text:$("#mkText").value.trim()}:null;
+  // remember the round an alarm / mark was first set in (Excel still marks the whole row for the day)
+  cur.alarm=draft.alarm?{code:$("#alCode").value.trim(),text:$("#alText").value.trim(),slot:(cur.alarm&&cur.alarm.slot)||S.slot}:null;
+  cur.mark=draft.mark?{text:$("#mkText").value.trim(),slot:(cur.mark&&cur.mark.slot)||S.slot}:null;
   cur.remarks=$("#rmText").value.trim();
   setDT(cur,"in",$("#plugIn").value);setDT(cur,"out",$("#plugOut").value);
   persist();return true;
