@@ -313,6 +313,7 @@ details.more .body{padding:0 12px 12px;display:grid;gap:8px}
         <button class="btn" type="button" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg><span data-i18n="import">Загрузить список</span></button>
         <button class="btn dark" type="button" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg><span data-i18n="export">Скачать Excel</span></button>
       </div>
+      <div id="exportBox" hidden></div>
       <button class="btn ghost" type="button" id="btnAdd" data-i18n="add">+ Добавить рифер вручную</button>
       <div class="setrow"><span data-i18n="scanBtn">Кнопка сканирования</span><div class="seg" role="group" id="segScan"><button type="button" data-v="1" data-i18n="show">Показывать</button><button type="button" data-v="0" data-i18n="hide">Скрыть</button></div></div>
       <h3 data-i18n="shipHdr">Шапка Excel-файла</h3>
@@ -394,7 +395,7 @@ needList:"Сначала загрузите список риферов",noExcel
 loaded:"<b>Загружено {0} риферов</b> из «{1}».",loadedC:" У {0} set point в °C, в отчёте будет пересчитан в °F.",hasReadings:"В файле уже есть показания{0}.",forD:" за ",clearNew:"Очистить, начать новый день",keep:"Оставить и продолжить",cleared:"Показания очищены. Дата отчёта: {0}.",
 fileDone:"Готово: {0}",fileSaved:"Файл сохранён: {0}",fileErr:"Не удалось сохранить файл",newDayToast:"Новый день: {0}",wiped:"Список удалён",storeErr:"Не удалось сохранить на телефоне: память переполнена?",
 newReefer:"Новый рифер",cnLbl:"Номер контейнера",posLbl:"Позиция",addOk:"Добавить",enterCn:"Введите номер контейнера",
-prevC:"Ранее переведено из °C ({0}).",cIn:"Ввод в °C. В отчёт пойдёт: supply {0} °F, return {1} °F.",allDone:"Все риферы обхода {0} записаны"},
+prevC:"Ранее переведено из °C ({0}).",cIn:"Ввод в °C. В отчёт пойдёт: supply {0} °F, return {1} °F.",allDone:"Все риферы обхода {0} записаны",fileName:"Имя файла",fileHint:"Сегодняшняя дата в имени будет сама меняться каждый день.",fileGo:"Сохранить",fileReset:"Вернуть имя по умолчанию"},
 en:{sub_empty:"Reefer list is empty",done_lbl:"done",vessel:"Vessel",round:"Round",searchPh:"Last digits or position",settings:"Settings",back:"Back",
 fNot:"Not done",fDone:"Done",fAlarm:"Alarms",fAll:"All",
 empty_h:"Reefer list is empty",empty_p:"The officer loads the list: gear → “Officer” → “Load list”.",empty_btn:"Open settings",
@@ -422,8 +423,8 @@ needList:"Load the reefer list first",noExcelLib:"Excel library did not load. Re
 loaded:"<b>Loaded {0} reefers</b> from “{1}”.",loadedC:" {0} have set point in °C; converted to °F in the report.",hasReadings:"The file already has readings{0}.",forD:" for ",clearNew:"Clear, start new day",keep:"Keep and continue",cleared:"Readings cleared. Report date: {0}.",
 fileDone:"Done: {0}",fileSaved:"File saved: {0}",fileErr:"Could not save the file",newDayToast:"New day: {0}",wiped:"List deleted",storeErr:"Could not save on the phone: storage full?",
 newReefer:"New reefer",cnLbl:"Container number",posLbl:"Position",addOk:"Add",enterCn:"Enter the container number",
-prevC:"Previously converted from °C ({0}).",cIn:"Input in °C. Report gets: supply {0} °F, return {1} °F.",allDone:"All reefers of round {0} are recorded"}};
-let P={unit:"F",lang:"ru",theme:"auto",scan:true,pin:""};
+prevC:"Previously converted from °C ({0}).",cIn:"Input in °C. Report gets: supply {0} °F, return {1} °F.",allDone:"All reefers of round {0} are recorded",fileName:"File name",fileHint:"Today’s date in the name updates itself every day.",fileGo:"Save",fileReset:"Reset to default name"}};
+let P={unit:"F",lang:"ru",theme:"auto",scan:true,pin:"",fileTpl:""};
 function loadPrefs(){try{const o=JSON.parse(localStorage.getItem(PK)||"null");if(o)P=Object.assign(P,o)}catch(e){}}
 function savePrefs(){try{localStorage.setItem(PK,JSON.stringify(P))}catch(e){}}
 function t(k,...a){const s=(I18N[P.lang]||I18N.ru)[k]??I18N.ru[k]??k;return s.replace(/\{(\d)\}/g,(_,i)=>a[i]??"")}
@@ -615,14 +616,32 @@ async function buildWorkbook(){
     const buf=await wb.xlsx.writeBuffer();
     return new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
-async function exportXlsx(){
+function defaultName(){
+  const m=S.meta;
+  if(P.fileTpl)return P.fileTpl.split("{date}").join(m.date);
+  const vessel=(m.vessel||"VESSEL").replace(/^MV\s+/i,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toUpperCase();
+  return `SEABOARD-DAILY-REEFER-REPORT-${vessel}-${m.date}`;
+}
+function showExport(){
+  if(!S.reefers.length){toast(t("needList"));return}
+  const b=$("#exportBox");b.hidden=false;
+  b.innerHTML=`<div class="panel"><label for="fName">${t("fileName")}</label><div class="lock"><input class="txt" id="fName" autocomplete="off" value="${esc(defaultName())}"><span class="foot-note" style="align-self:center">.xlsx</span></div><p class="foot-note" style="margin:0">${t("fileHint")}</p><div style="display:grid;grid-template-columns:1.6fr 1fr;gap:8px"><button class="btn primary" type="button" id="fGo">${t("fileGo")}</button><button class="btn" type="button" id="fNo">${t("cancel")}</button></div><button class="btn ghost" type="button" id="fReset">${t("fileReset")}</button></div>`;
+  $("#fNo").onclick=()=>{b.hidden=true};
+  $("#fReset").onclick=()=>{P.fileTpl="";savePrefs();$("#fName").value=defaultName()};
+  $("#fGo").onclick=()=>{
+    let n=$("#fName").value.trim().replace(/\.xlsx$/i,"").replace(/[\\\/:*?"<>|]+/g,"-");
+    if(!n)n=defaultName();
+    // remember the name; today's date becomes {date} so it updates itself tomorrow
+    const d=S.meta.date;P.fileTpl=n.includes(d)?n.split(d).join("{date}"):n;savePrefs();
+    b.hidden=true;exportXlsx(n+".xlsx");
+  };
+}
+async function exportXlsx(name){
   if(!S.reefers.length){toast(t("needList"));return}
   if(!window.ExcelJS){toast(t("noExcelLib"),4000);return}
   const btn=$("#btnExport");btn.disabled=true;
   try{
-    const blob=await buildWorkbook();const m=S.meta;
-    const vessel=(m.vessel||"VESSEL").replace(/^MV\s+/i,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toUpperCase();
-    const name=`SEABOARD-DAILY-REEFER-REPORT-${vessel}-${m.date}.xlsx`;
+    const blob=await buildWorkbook();
     const file=new File([blob],name,{type:blob.type});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
       try{await navigator.share({files:[file],title:name});toast(t("fileDone",name),3500)}catch(e){if(e&&e.name!=="AbortError")throw e}
@@ -866,7 +885,7 @@ function addManual(){
 /* ---------- wiring ---------- */
 $("#btnImport").onclick=()=>$("#fileImport").click();
 $("#fileImport").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)importFile(f)};
-$("#btnExport").onclick=exportXlsx;
+$("#btnExport").onclick=showExport;
 $("#btnAdd").onclick=addManual;
 $("#btnSettings").onclick=openSettings;$("#setBack").onclick=()=>closeSettings();
 $("#segUnit").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.unit=b.dataset.v;savePrefs();renderSettings()};
