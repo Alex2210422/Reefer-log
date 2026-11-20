@@ -460,7 +460,9 @@ function defaultSlot(){const h=new Date().getHours();return h<10?"0600":h<18?"14
 /* ---------- persistence: this phone only ---------- */
 function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch(e){toast(t("storeErr"),4000)}}
 function persist(){S.updatedAt=Date.now();saveLocal()}
-function loadLocal(){try{const x=localStorage.getItem(LS_KEY);if(x){const o=JSON.parse(x);if(o&&o.reefers)S=Object.assign(blankState(),o,{meta:Object.assign(blankState().meta,o.meta)})}}catch(e){}}
+function loadLocal(){try{const x=localStorage.getItem(LS_KEY);if(x){const o=JSON.parse(x);if(o&&o.reefers)S=Object.assign(blankState(),o,{meta:Object.assign(blankState().meta,o.meta)});
+  // drop empty rows left by an unfinished "add reefer" in the old version
+  const n=S.reefers.length;S.reefers=S.reefers.filter(r=>r.cn&&String(r.cn).trim());if(S.reefers.length!==n)saveLocal()}}catch(e){}}
 /* ---------- helpers ---------- */
 function parseTemp(txt,defUnit){
   if(txt==null)return null;
