@@ -69,8 +69,8 @@ main .wrap{padding-block:12px 120px;display:grid;gap:12px}
 .btn:disabled{opacity:.5}
 .search{display:flex;gap:8px}
 .search input{flex:1;min-width:0;min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 14px;font-family:var(--font-num);font-size:17px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;font-size:14px;font-weight:600;white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .list{display:grid;gap:6px}
 .item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:10px 12px}
@@ -164,17 +164,47 @@ textarea.txt{min-height:70px;resize:vertical}
 .form label{display:grid;gap:4px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 h3{margin:4px 0 0;font-size:17px}
 .foot-note{color:var(--muted);font-size:13px}
-@media (max-width:380px){.fields{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}}
+@media (max-width:340px){.fields{grid-template-columns:1fr}}
+/* v2: compact entry card, settings rows, collapsible blocks */
+.sheet .wrap{padding-block:8px 110px;gap:10px}
+.sheet-head .wrap{padding-block:8px}
+.factline{display:flex;gap:6px;flex-wrap:wrap}
+.factline>span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-family:var(--font-num);font-size:15px;font-weight:600;white-space:nowrap}
+.factline .k{color:var(--muted);font-family:var(--font-ui);font-size:12px;font-weight:600;margin-right:5px;text-transform:uppercase;letter-spacing:.04em}
+.cam .btn.primary{min-height:52px;font-size:17px}
+.inp input{font-size:26px;padding:8px}
+.flag{min-height:46px}
+details.more{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.more>summary{list-style:none;padding:11px 12px;font-weight:700;display:flex;gap:8px;align-items:center;justify-content:space-between;cursor:pointer}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::after{content:"▾";color:var(--muted)}
+details.more[open]>summary::after{content:"▴"}
+details.more>summary .sm{flex:1;min-width:0;text-align:right;color:var(--muted);font-weight:500;font-size:14px;font-family:var(--font-num);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.more .body{padding:0 12px 12px;display:grid;gap:8px}
+.plugrow{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:end}
+.plugrow label{display:grid;gap:4px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:0}
+.plugrow .txt{min-height:44px;padding:8px 10px}
+.plugrow .btn{min-height:44px}
+.history{font-size:14px;line-height:1.4;display:block;color:var(--muted)}
+.sheet-foot .wrap{grid-template-columns:1fr}
+.seg{display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;grid-template-columns:none}
+.seg button{padding:8px 12px;font-family:var(--font-ui)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.setrow>span{font-weight:700}
+.offbox{display:grid;gap:12px}
+.toolbar .btn{min-height:52px}
+.lock{display:flex;gap:8px}
+.lock .txt{flex:1;min-width:0}
 </style>
 
 </head><body>
 <header class="top">
   <div class="wrap">
     <div class="row1">
-      <div class="brand" id="hdrBrand">Reefer Log<small id="hdrSub">Загрузите список риферов</small></div>
-      <div class="count" id="hdrCount">0/0<small>сделано</small></div>
+      <div class="brand">Reefer Log<small id="hdrSub"></small></div>
+      <div class="count" id="hdrCount">0/0</div>
     </div>
-    <div class="slots" role="group" aria-label="Обход">
+    <div class="slots" role="group" data-i18n-aria="round">
       <button type="button" data-slot="0600" aria-pressed="true">06:00</button>
       <button type="button" data-slot="1400" aria-pressed="false">14:00</button>
       <button type="button" data-slot="2200" aria-pressed="false">22:00</button>
@@ -185,112 +215,129 @@ h3{margin:4px 0 0;font-size:17px}
 
 <main>
   <div class="wrap">
-    <div class="toolbar">
-      <button class="btn" type="button" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>Загрузить список</button>
-      <button class="btn dark" type="button" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg>Скачать Excel</button>
-    </div>
     <input type="file" id="fileImport" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     <div id="banner"></div>
     <div class="search">
-      <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="Поиск: номер или позиция" aria-label="Поиск рифера">
-      <button class="iconbtn" type="button" id="btnSettings" aria-label="Данные судна и настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+      <input id="q" type="search" inputmode="search" autocomplete="off" data-i18n-ph="searchPh" data-i18n-aria="searchPh">
+      <button class="iconbtn" type="button" id="btnSettings" data-i18n-aria="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
-    <div class="chips" role="group" aria-label="Фильтр">
-      <button class="chip" type="button" data-f="todo" aria-pressed="true">Не сделано</button>
-      <button class="chip" type="button" data-f="all" aria-pressed="false">Все</button>
-      <button class="chip" type="button" data-f="flag" aria-pressed="false">Алармы и отметки</button>
+    <div class="chips" role="group">
+      <button class="chip" type="button" data-f="todo" aria-pressed="true" data-i18n="fNot">Не отмечены</button>
+      <button class="chip" type="button" data-f="done" aria-pressed="false" data-i18n="fDone">Отмечены</button>
+      <button class="chip" type="button" data-f="flag" aria-pressed="false" data-i18n="fAlarm">Алармы</button>
+      <button class="chip" type="button" data-f="all" aria-pressed="false" data-i18n="fAll">Все</button>
     </div>
     <div class="list" id="list"></div>
-    <button class="btn ghost" type="button" id="btnAdd">+ Добавить рифер вручную</button>
   </div>
 </main>
 
 <!-- entry sheet -->
 <section class="sheet" id="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="shCn">
   <div class="sheet-head"><div class="wrap">
-    <button class="iconbtn" type="button" id="shBack" aria-label="Назад к списку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="iconbtn" type="button" id="shBack" data-i18n-aria="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="sheet-title"><div class="cn" id="shCn"></div><div class="sub" id="shSub"></div></div>
   </div></div>
   <div class="wrap">
-    <div class="facts">
-      <div class="fact"><div class="k">Позиция</div><div class="v" id="shLoc"></div></div>
-      <div class="fact"><div class="k">Set point</div><div class="v" id="shSp"></div></div>
-      <div class="fact"><div class="k">Обход</div><div class="v" id="shSlot"></div></div>
+    <div class="factline">
+      <span><span class="k" data-i18n="pos">Поз.</span><span id="shLoc"></span></span>
+      <span><span class="k">SP</span><span id="shSp"></span></span>
+      <span><span class="k" data-i18n="round">Обход</span><span id="shSlot"></span></span>
     </div>
-    <div class="cam">
-      <button class="btn primary" type="button" id="btnShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>Сфотографировать дисплей</button>
+    <div class="cam" id="camBlock">
+      <button class="btn primary" type="button" id="btnShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-i18n="shot">Сфотографировать дисплей</span></button>
       <input type="file" id="fileShot" accept="image/*" capture="environment" hidden>
       <div class="cam" id="photoBox" hidden>
-        <div class="hint" id="pickHint">Обведите пальцем число SUPPLY на фото</div>
-        <div class="pick" role="group" aria-label="Что читать"><button type="button" class="zoom" data-t="zoom" aria-pressed="false" id="btnZoom">Приблизить</button><button type="button" data-t="sup" aria-pressed="true">Supply</button><button type="button" data-t="ret" aria-pressed="false">Return</button><button type="button" data-t="sp" aria-pressed="false">Set point</button></div>
-        <div class="photo"><div class="stage" id="stage"><canvas id="photoCv" aria-label="Фото дисплея рифера"></canvas><div class="selbox" id="selbox" hidden></div></div><img id="photoImg" alt="" hidden></div>
+        <div class="hint" id="pickHint"></div>
+        <div class="pick" role="group"><button type="button" class="zoom" data-t="zoom" aria-pressed="false" id="btnZoom"></button><button type="button" data-t="sup" aria-pressed="true">Supply</button><button type="button" data-t="ret" aria-pressed="false">Return</button><button type="button" data-t="sp" aria-pressed="false">Set point</button></div>
+        <div class="photo"><div class="stage" id="stage"><canvas id="photoCv"></canvas><div class="selbox" id="selbox" hidden></div></div><img id="photoImg" alt="" hidden></div>
       </div>
       <div id="ocrNote"></div>
     </div>
-    <div class="unit"><span class="foot-note">Единицы ввода:</span>
-      <div class="seg" role="group" aria-label="Единицы"><button type="button" id="uF" aria-pressed="true">°F</button><button type="button" id="uC" aria-pressed="false">°C</button></div>
-      <span class="foot-note" id="unitHint"></span>
-    </div>
     <div class="fields">
-      <div class="field"><label for="inSup">Supply</label><div class="inp" id="boxSup"><button type="button" data-neg="inSup" aria-label="Сменить знак supply">±</button><input id="inSup" type="text" inputmode="decimal" autocomplete="off" placeholder="—"><span class="u" id="uSup">°F</span></div></div>
-      <div class="field"><label for="inRet">Return</label><div class="inp" id="boxRet"><button type="button" data-neg="inRet" aria-label="Сменить знак return">±</button><input id="inRet" type="text" inputmode="decimal" autocomplete="off" placeholder="—"><span class="u" id="uRet">°F</span></div></div>
+      <div class="field"><label for="inSup">Supply</label><div class="inp" id="boxSup"><button type="button" data-neg="inSup" aria-label="±">±</button><input id="inSup" type="text" inputmode="decimal" autocomplete="off" placeholder="—"><span class="u" id="uSup">°F</span></div></div>
+      <div class="field"><label for="inRet">Return</label><div class="inp" id="boxRet"><button type="button" data-neg="inRet" aria-label="±">±</button><input id="inRet" type="text" inputmode="decimal" autocomplete="off" placeholder="—"><span class="u" id="uRet">°F</span></div></div>
     </div>
     <div id="convNote"></div>
     <div class="flags">
-      <button class="flag alarm" type="button" id="btnAlarm" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Аларм</button>
-      <button class="flag mark" type="button" id="btnMark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>Марк</button>
+      <button class="flag alarm" type="button" id="btnAlarm" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span data-i18n="alarm">Аларм</span></button>
+      <button class="flag mark" type="button" id="btnMark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></svg><span data-i18n="mark">Марк</span></button>
     </div>
     <div class="panel alarm" id="alarmPanel" hidden>
-      <label for="alCode">Код аларма</label>
-      <input class="txt num" id="alCode" placeholder="напр. AL56, 00042" autocomplete="off">
+      <label for="alCode" data-i18n="alCode">Код аларма</label>
+      <input class="txt num" id="alCode" data-i18n-ph="alCodePh" autocomplete="off">
       <div class="quick" id="alQuick"></div>
-      <label for="alText">Что случилось / что сделали</label>
-      <textarea class="txt" id="alText" placeholder="напр. High pressure, сброшен, работает"></textarea>
+      <label for="alText" data-i18n="alText">Что случилось / что сделали</label>
+      <textarea class="txt" id="alText" data-i18n-ph="alTextPh"></textarea>
     </div>
     <div class="panel mark" id="markPanel" hidden>
-      <label for="mkText">Отметка (желтая строка в Excel)</label>
-      <textarea class="txt" id="mkText" placeholder="напр. Temp out of range, перепроверить в 07:00"></textarea>
+      <label for="mkText" data-i18n="mkLbl">Отметка</label>
+      <textarea class="txt" id="mkText" data-i18n-ph="mkPh"></textarea>
     </div>
-    <div class="panel">
-      <label for="rmText">Примечания (REMARKS)</label>
-      <textarea class="txt" id="rmText" placeholder="Попадёт в колонку REMARKS/ALARMS"></textarea>
-      <button class="btn" type="button" id="btnRecheck">+ Записать перепроверку с текущим временем</button>
-    </div>
+    <details class="more" id="rmBox">
+      <summary><span data-i18n="remarks">Примечания</span><span class="sm" id="rmSum"></span></summary>
+      <div class="body">
+        <textarea class="txt" id="rmText" data-i18n-ph="rmPh"></textarea>
+        <button class="btn" type="button" id="btnRecheck" data-i18n="recheck">+ Перепроверка</button>
+        <button class="btn ghost" type="button" id="btnClear" data-i18n="clear">Очистить показания этого обхода</button>
+      </div>
+    </details>
+    <details class="more" id="plugBox">
+      <summary><span data-i18n="plugTitle">Подключение</span><span class="sm" id="plugSum"></span></summary>
+      <div class="body">
+        <div class="plugrow"><label><span data-i18n="plugIn">Подключён</span><input class="txt num" type="datetime-local" id="plugIn"></label><button class="btn" type="button" id="plugInNow" data-i18n="now">Сейчас</button></div>
+        <div class="plugrow"><label><span data-i18n="plugOut">Отключён</span><input class="txt num" type="datetime-local" id="plugOut"></label><button class="btn" type="button" id="plugOutNow" data-i18n="now">Сейчас</button></div>
+      </div>
+    </details>
     <div class="history" id="shHist"></div>
-    <button class="btn ghost" type="button" id="btnClear">Очистить показания этого обхода</button>
   </div>
   <div class="sheet-foot"><div class="wrap">
-    <button class="btn" type="button" id="btnSave">Сохранить</button>
-    <button class="btn primary" type="button" id="btnSaveNext">Сохранить → следующий</button>
+    <button class="btn primary" type="button" id="btnSave" data-i18n="save">Сохранить</button>
   </div></div>
 </section>
 
 <!-- settings sheet -->
 <section class="sheet" id="settings" hidden aria-modal="true" role="dialog" aria-labelledby="setTitle">
   <div class="sheet-head"><div class="wrap">
-    <button class="iconbtn" type="button" id="setBack" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-    <div class="sheet-title"><div class="cn" id="setTitle">Судно и отчёт</div><div class="sub">Шапка Excel-файла</div></div>
+    <button class="iconbtn" type="button" id="setBack" data-i18n-aria="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="sheet-title"><div class="cn" id="setTitle" data-i18n="settings">Настройки</div></div>
   </div></div>
   <div class="wrap">
-    <div class="form">
-      <label>Дата отчёта<input class="txt num" type="date" id="mDate"></label>
-      <div class="two">
-        <label>Судно<input class="txt" id="mVessel" placeholder="MV ELBTOWER"></label>
-        <label>Рейс<input class="txt" id="mVoyage" placeholder="4"></label>
+    <div class="setrow"><span data-i18n="unitLbl">Единицы</span><div class="seg" role="group" id="segUnit"><button type="button" data-v="F">°F</button><button type="button" data-v="C">°C</button></div></div>
+    <div class="setrow"><span data-i18n="langLbl">Язык</span><div class="seg" role="group" id="segLang"><button type="button" data-v="ru">Русский</button><button type="button" data-v="en">English</button></div></div>
+    <div class="setrow"><span data-i18n="themeLbl">Тема</span><div class="seg" role="group" id="segTheme"><button type="button" data-v="light" data-i18n="light">Светлая</button><button type="button" data-v="dark" data-i18n="dark">Тёмная</button><button type="button" data-v="auto" data-i18n="auto">Авто</button></div></div>
+
+    <h3 data-i18n="officer">Для офицера</h3>
+    <div id="offGate"></div>
+    <div class="offbox" id="offBody" hidden>
+      <div class="toolbar">
+        <button class="btn" type="button" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg><span data-i18n="import">Загрузить список</span></button>
+        <button class="btn dark" type="button" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg><span data-i18n="export">Скачать Excel</span></button>
       </div>
-      <div class="two">
-        <label>Порт погрузки<input class="txt" id="mLoad" placeholder="USMIA / JMKIN"></label>
-        <label>Порт выгрузки<input class="txt" id="mDisch"></label>
+      <button class="btn ghost" type="button" id="btnAdd" data-i18n="add">+ Добавить рифер вручную</button>
+      <div class="setrow"><span data-i18n="scanBtn">Кнопка сканирования</span><div class="seg" role="group" id="segScan"><button type="button" data-v="1" data-i18n="show">Показывать</button><button type="button" data-v="0" data-i18n="hide">Скрыть</button></div></div>
+      <h3 data-i18n="shipHdr">Шапка Excel-файла</h3>
+      <div class="form">
+        <label><span data-i18n="mDate">Дата отчёта</span><input class="txt num" type="date" id="mDate"></label>
+        <div class="two">
+          <label><span data-i18n="mVessel">Судно</span><input class="txt" id="mVessel" placeholder="MV ELBTOWER"></label>
+          <label><span data-i18n="mVoyage">Рейс</span><input class="txt" id="mVoyage" placeholder="4"></label>
+        </div>
+        <div class="two">
+          <label><span data-i18n="mLoad">Порт погрузки</span><input class="txt" id="mLoad" placeholder="USMIA / JMKIN"></label>
+          <label><span data-i18n="mDisch">Порт выгрузки</span><input class="txt" id="mDisch"></label>
+        </div>
+        <label>Reefer mechanic<input class="txt" id="mMech"></label>
+        <label><span data-i18n="mTol">Допуск supply от set point, °F</span><input class="txt num" id="mTol" inputmode="decimal" placeholder="3"></label>
       </div>
-      <label>Reefer mechanic<input class="txt" id="mMech"></label>
-      <label>Допуск supply от set point, °F<input class="txt num" id="mTol" inputmode="decimal" placeholder="3"></label>
+      <h3 data-i18n="pinTitle">PIN-код</h3>
+      <div id="pinBox"></div>
+      <h3 data-i18n="newDay">Новый день</h3>
+      <p class="foot-note" data-i18n="newDayP"></p>
+      <div id="newDayBox"></div>
+      <h3 data-i18n="wipeH">Удалить список</h3>
+      <div id="wipeBox"></div>
     </div>
-    <h3>Новый день</h3>
-    <p class="foot-note">Очищает показания 06:00 / 14:00 / 22:00, алармы и отметки, ставит сегодняшнюю дату. Список риферов остаётся. Сначала скачайте Excel за сегодня.</p>
-    <div id="newDayBox"><button class="btn" type="button" id="btnNewDay">Начать новый день</button></div>
-    <h3>Удалить список</h3>
-    <div id="wipeBox"><button class="btn ghost" type="button" id="btnWipe">Удалить все риферы</button></div>
-    <p class="foot-note" id="syncInfo"></p>
+    <p class="foot-note" data-i18n="sync"></p>
   </div>
 </section>
 
@@ -304,25 +351,103 @@ const TEMPLATE_B64="UEsDBAoAAAAIAO6gdF1TKbJgXAEAAPIEAAATAAAAW0NvbnRlbnRfVHlwZXNd
 const SLOTS={"0600":{label:"06:00",sup:"X",ret:"Y"},"1400":{label:"14:00",sup:"Z",ret:"AA"},"2200":{label:"22:00",sup:"AB",ret:"AC"}};
 // SEABOARD columns kept from the imported file (loaded/plugged dates, POL/POD, etc.)
 const EXTRA_COLS=["E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","AD","AE","AF","AG","AH","AJ","AK","AL","AM"];
-const LS_KEY="reeferlog.v1";
+const PLUG={in:{d:"K",t:"L"},out:{d:"AJ",t:"AK"}};
+const LS_KEY="reeferlog.v1",PK="reeferlog.prefs";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const r1=x=>Math.round(x*10)/10;
 const c2f=c=>r1(c*9/5+32);
+const f2c=f=>r1((f-32)*5/9);
 const fmt=x=>x==null||isNaN(x)?"—":(Math.abs(x)<0.05?"0.0":x.toFixed(1));
-const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-const nowHM=()=>{const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+const pad=n=>String(n).padStart(2,"0");
+const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const nowHM=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
+const nowLocal=()=>todayISO()+"T"+nowHM();
 const ddmm=iso=>{if(!iso)return"";const[y,m,d]=iso.split("-");return d+"."+m+"."+y};
+
+/* ---------- language ---------- */
+const I18N={
+ru:{sub_empty:"Список риферов пуст",done_lbl:"сделано",vessel:"Судно",round:"Обход",searchPh:"Последние цифры или позиция",settings:"Настройки",back:"Назад",
+fNot:"Не отмечены",fDone:"Отмечены",fAlarm:"Алармы",fAll:"Все",
+empty_h:"Список риферов пуст",empty_p:"Список загружает офицер: шестерёнка → «Для офицера» → «Загрузить список».",empty_btn:"Открыть настройки",
+nf_search:"Ничего не найдено.",nf_todo:"Все риферы этого обхода записаны.",nf_done:"В этом обходе ещё ничего не записано.",nf_flag:"Нет алармов и отметок.",
+notrec:"не записан",alarm:"Аларм",mark:"Марк",pos:"Поз.",of:"из",
+shot:"Сфотографировать дисплей",zoom:"Приблизить",full:"Весь кадр",hintZoom:"Обведите пальцем экран рифера, чтобы приблизить",hintPick:"Обведите пальцем число {0} на фото",
+remarks:"Примечания",rmPh:"Попадёт в колонку REMARKS/ALARMS",recheck:"+ Перепроверка с текущим временем",clear:"Очистить показания этого обхода",
+plugTitle:"Подключение",plugIn:"Подключён",plugOut:"Отключён",now:"Сейчас",save:"Сохранить",
+alCode:"Код аларма",alCodePh:"напр. AL56, 00042",alText:"Что случилось / что сделали",alTextPh:"напр. High pressure, сброшен, работает",mkLbl:"Отметка (жёлтая строка в Excel)",mkPh:"напр. Temp out of range, перепроверить в 07:00",
+unitLbl:"Единицы",langLbl:"Язык",themeLbl:"Тема",light:"Светлая",dark:"Тёмная",auto:"Авто",
+officer:"Для офицера",offOpen:"Открыть раздел офицера",offClose:"Закрыть раздел",pinPh:"PIN-код",pinOk:"Открыть",pinBad:"Неверный PIN",
+import:"Загрузить список",export:"Скачать Excel",add:"+ Добавить рифер вручную",scanBtn:"Кнопка сканирования",show:"Показывать",hide:"Скрыть",
+shipHdr:"Шапка Excel-файла",mDate:"Дата отчёта",mVessel:"Судно",mVoyage:"Рейс",mLoad:"Порт погрузки",mDisch:"Порт выгрузки",mTol:"Допуск supply от set point, °F",
+pinTitle:"PIN-код раздела",pinNone:"PIN не установлен: раздел открывается без кода.",pinSetTxt:"PIN установлен.",pinNew:"Новый PIN (4–8 цифр)",pinSave:"Установить PIN",pinRemove:"Убрать PIN",pinShort:"PIN: от 4 до 8 цифр",pinDone:"PIN сохранён",pinRemoved:"PIN убран",
+newDay:"Новый день",newDayP:"Очищает показания 06:00 / 14:00 / 22:00, алармы и отметки, ставит сегодняшнюю дату. Список риферов остаётся. Сначала скачайте Excel за сегодня.",newDayBtn:"Начать новый день",
+wipeH:"Удалить список",wipeBtn:"Удалить все риферы",sure:"Точно? Это нельзя отменить.",yes:"Да",cancel:"Отмена",
+sync:"Все данные хранятся только на этом телефоне и работают без интернета. Скачивайте Excel после каждого обхода как резервную копию.",
+saved:"Сохранено",fixNum:"Исправьте число перед сохранением",badNum:"Проверьте число: допускаются цифры, точка и минус.",
+devWarn:"<b>Supply {0}</b> отличается от set point {1} на {2}. Если это не разморозка (defrost), поставьте Марк или Аларм.",
+ocrFail:"Не разобрал цифры. Обведите число ещё раз, чуть шире, или введите вручную.",ocrRead:"{0}: <b class=\"num\">{1}</b>. Сверьте с дисплеем.",lowConf:" Уверенность низкая.",
+ocrConv:"На дисплее {0}, переведено в {1}.",guessC:"Похоже, дисплей в °C ({0} близко к set point {1} °C).",convBtn:"Перевести из °C в °F",
+spSeen:"Set point на дисплее: <b class=\"num\">{0}</b>.",spDiff:"<b>Set point на дисплее {0}</b>, а в списке {1}.",addNote:"Добавить в примечания",added:"Добавлено",
+recheckFirst:"Сначала введите supply / return",recheckAdded:"Перепроверка добавлена в примечания",photoFail:"Не удалось открыть фото",
+needList:"Сначала загрузите список риферов",noExcelLib:"Не загрузилась библиотека Excel. Переустановите приложение.",badFile:"Не удалось открыть файл. Нужен формат .xlsx",noCn:"В файле не найдены номера контейнеров",emptyFile:"Список пуст: не нашёл ни одного контейнера",
+loaded:"<b>Загружено {0} риферов</b> из «{1}».",loadedC:" У {0} set point в °C, в отчёте будет пересчитан в °F.",hasReadings:"В файле уже есть показания{0}.",forD:" за ",clearNew:"Очистить, начать новый день",keep:"Оставить и продолжить",cleared:"Показания очищены. Дата отчёта: {0}.",
+fileDone:"Готово: {0}",fileSaved:"Файл сохранён: {0}",fileErr:"Не удалось сохранить файл",newDayToast:"Новый день: {0}",wiped:"Список удалён",storeErr:"Не удалось сохранить на телефоне: память переполнена?",
+newReefer:"Новый рифер",cnLbl:"Номер контейнера",posLbl:"Позиция",addOk:"Добавить",enterCn:"Введите номер контейнера",
+prevC:"Ранее переведено из °C ({0}).",cIn:"Ввод в °C. В отчёт пойдёт: supply {0} °F, return {1} °F.",allDone:"Все риферы обхода {0} записаны"},
+en:{sub_empty:"Reefer list is empty",done_lbl:"done",vessel:"Vessel",round:"Round",searchPh:"Last digits or position",settings:"Settings",back:"Back",
+fNot:"Not done",fDone:"Done",fAlarm:"Alarms",fAll:"All",
+empty_h:"Reefer list is empty",empty_p:"The officer loads the list: gear → “Officer” → “Load list”.",empty_btn:"Open settings",
+nf_search:"Nothing found.",nf_todo:"All reefers of this round are recorded.",nf_done:"Nothing recorded in this round yet.",nf_flag:"No alarms or marks.",
+notrec:"not recorded",alarm:"Alarm",mark:"Mark",pos:"Pos.",of:"of",
+shot:"Photograph display",zoom:"Zoom",full:"Full frame",hintZoom:"Outline the reefer screen with your finger to zoom",hintPick:"Outline the {0} number on the photo",
+remarks:"Remarks",rmPh:"Goes to the REMARKS/ALARMS column",recheck:"+ Recheck with current time",clear:"Clear this round's readings",
+plugTitle:"Plug in / out",plugIn:"Plugged in",plugOut:"Unplugged",now:"Now",save:"Save",
+alCode:"Alarm code",alCodePh:"e.g. AL56, 00042",alText:"What happened / action taken",alTextPh:"e.g. High pressure, reset, running",mkLbl:"Mark (yellow row in Excel)",mkPh:"e.g. Temp out of range, recheck at 07:00",
+unitLbl:"Units",langLbl:"Language",themeLbl:"Theme",light:"Light",dark:"Dark",auto:"Auto",
+officer:"Officer",offOpen:"Open officer section",offClose:"Close section",pinPh:"PIN",pinOk:"Open",pinBad:"Wrong PIN",
+import:"Load list",export:"Download Excel",add:"+ Add reefer manually",scanBtn:"Scan button",show:"Show",hide:"Hide",
+shipHdr:"Excel header",mDate:"Report date",mVessel:"Vessel",mVoyage:"Voyage",mLoad:"Load port",mDisch:"Discharge port",mTol:"Supply tolerance from set point, °F",
+pinTitle:"Section PIN",pinNone:"No PIN: the section opens without a code.",pinSetTxt:"PIN is set.",pinNew:"New PIN (4–8 digits)",pinSave:"Set PIN",pinRemove:"Remove PIN",pinShort:"PIN: 4 to 8 digits",pinDone:"PIN saved",pinRemoved:"PIN removed",
+newDay:"New day",newDayP:"Clears 06:00 / 14:00 / 22:00 readings, alarms and marks and sets today's date. The reefer list stays. Download today's Excel first.",newDayBtn:"Start new day",
+wipeH:"Delete list",wipeBtn:"Delete all reefers",sure:"Sure? This cannot be undone.",yes:"Yes",cancel:"Cancel",
+sync:"All data is stored only on this phone and works offline. Download the Excel after each round as a backup.",
+saved:"Saved",fixNum:"Fix the number before saving",badNum:"Check the number: digits, dot and minus only.",
+devWarn:"<b>Supply {0}</b> differs from set point {1} by {2}. If this is not defrost, set Mark or Alarm.",
+ocrFail:"Could not read the digits. Outline the number again a bit wider, or type it.",ocrRead:"{0}: <b class=\"num\">{1}</b>. Check against the display.",lowConf:" Low confidence.",
+ocrConv:"Display shows {0}, converted to {1}.",guessC:"Display looks like °C ({0} is close to set point {1} °C).",convBtn:"Convert °C → °F",
+spSeen:"Set point on display: <b class=\"num\">{0}</b>.",spDiff:"<b>Display set point {0}</b>, but the list says {1}.",addNote:"Add to remarks",added:"Added",
+recheckFirst:"Enter supply / return first",recheckAdded:"Recheck added to remarks",photoFail:"Could not open the photo",
+needList:"Load the reefer list first",noExcelLib:"Excel library did not load. Reinstall the app.",badFile:"Could not open the file. .xlsx needed",noCn:"No container numbers found in the file",emptyFile:"No containers found",
+loaded:"<b>Loaded {0} reefers</b> from “{1}”.",loadedC:" {0} have set point in °C; converted to °F in the report.",hasReadings:"The file already has readings{0}.",forD:" for ",clearNew:"Clear, start new day",keep:"Keep and continue",cleared:"Readings cleared. Report date: {0}.",
+fileDone:"Done: {0}",fileSaved:"File saved: {0}",fileErr:"Could not save the file",newDayToast:"New day: {0}",wiped:"List deleted",storeErr:"Could not save on the phone: storage full?",
+newReefer:"New reefer",cnLbl:"Container number",posLbl:"Position",addOk:"Add",enterCn:"Enter the container number",
+prevC:"Previously converted from °C ({0}).",cIn:"Input in °C. Report gets: supply {0} °F, return {1} °F.",allDone:"All reefers of round {0} are recorded"}};
+let P={unit:"F",lang:"ru",theme:"auto",scan:true,pin:""};
+function loadPrefs(){try{const o=JSON.parse(localStorage.getItem(PK)||"null");if(o)P=Object.assign(P,o)}catch(e){}}
+function savePrefs(){try{localStorage.setItem(PK,JSON.stringify(P))}catch(e){}}
+function t(k,...a){const s=(I18N[P.lang]||I18N.ru)[k]??I18N.ru[k]??k;return s.replace(/\{(\d)\}/g,(_,i)=>a[i]??"")}
+function applyLang(){
+  document.documentElement.lang=P.lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>el.placeholder=t(el.dataset.i18nPh));
+  document.querySelectorAll("[data-i18n-aria]").forEach(el=>el.setAttribute("aria-label",t(el.dataset.i18nAria)));
+}
+function applyTheme(){const r=document.documentElement;if(P.theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",P.theme)}
+function applyPrefs(){applyLang();applyTheme();$("#camBlock").hidden=!P.scan}
+/* display unit helpers: everything is stored in °F */
+const U=()=>"°"+P.unit;
+const dU=f=>f==null||isNaN(f)?f:(P.unit==="C"?f2c(f):f);
+const fromU=v=>v==null||isNaN(v)?v:(P.unit==="C"?c2f(v):v);
 
 let S=blankState();
 function blankState(){return{v:1,updatedAt:0,meta:{date:todayISO(),vessel:"",voyage:"",loadPort:"",dischPort:"",mech:"",tier:"quick",tol:3},slot:defaultSlot(),reefers:[]}}
 function defaultSlot(){const h=new Date().getHours();return h<10?"0600":h<18?"1400":"2200"}
 
 /* ---------- persistence: this phone only ---------- */
-function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch(e){toast("Не удалось сохранить на телефоне: память переполнена?",4000)}}
+function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch(e){toast(t("storeErr"),4000)}}
 function persist(){S.updatedAt=Date.now();saveLocal()}
-function loadLocal(){try{const t=localStorage.getItem(LS_KEY);if(t){const o=JSON.parse(t);if(o&&o.reefers)S=Object.assign(blankState(),o,{meta:Object.assign(blankState().meta,o.meta)})}}catch(e){}}
-function renderSync(){const el=$("#syncInfo");if(el)el.textContent="Все данные хранятся только на этом телефоне и работают без интернета. Скачивайте Excel после каждого обхода как резервную копию."}
+function loadLocal(){try{const x=localStorage.getItem(LS_KEY);if(x){const o=JSON.parse(x);if(o&&o.reefers)S=Object.assign(blankState(),o,{meta:Object.assign(blankState().meta,o.meta)})}}catch(e){}}
 /* ---------- helpers ---------- */
 function parseTemp(txt,defUnit){
   if(txt==null)return null;
@@ -334,15 +459,15 @@ function parseTemp(txt,defUnit){
   return{v,unit:(m[2]||defUnit||"F").toUpperCase()};
 }
 function spF(r){if(!r.sp)return null;return r.sp.unit==="C"?c2f(r.sp.v):r.sp.v}
-function spText(r){if(!r.sp)return"—";const f=spF(r);return r.sp.unit==="C"?`${fmtSp(f)} °F (${fmtSp(r.sp.v)} °C)`:`${fmtSp(f)} °F`}
 function fmtSp(x){return Number.isInteger(x)?String(x):x.toFixed(1)}
+function spText(r){if(!r.sp)return r.spRaw||"—";const f=spF(r);return P.unit==="C"?`${fmtSp(f2c(f))} °C`:`${fmtSp(f)} °F`}
 function reading(r,slot){return(r.readings&&r.readings[slot])||null}
 function isDone(r,slot){const x=reading(r,slot);return!!(x&&(x.sup!=null||x.ret!=null))}
 function cellText(cell){
   const v=cell.value;
   if(v==null)return"";
   if(v instanceof Date)return v.toISOString();
-  if(typeof v==="object"){if(v.richText)return v.richText.map(t=>t.text).join("");if("result" in v)return v.result==null?"":String(v.result);if(v.text)return String(v.text);return cell.text||""}
+  if(typeof v==="object"){if(v.richText)return v.richText.map(x=>x.text).join("");if("result" in v)return v.result==null?"":String(v.result);if(v.text)return String(v.text);return cell.text||""}
   return String(v);
 }
 function cellRaw(cell){
@@ -352,18 +477,40 @@ function cellRaw(cell){
   if(typeof v==="object")return cellText(cell);
   return v;
 }
-function toast(msg,ms){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,ms||2600)}
+function toast(msg,ms){const el=$("#toast");el.textContent=msg;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,ms||2600)}
 function b64ToBuf(b64){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer}
 const CN_RE=/^[A-Z]{4}\s*\d{3}\s*\d{3}\s*\d?$/i;
 
+/* plug in / out stored in the SEABOARD columns K/L and AJ/AK */
+function getDT(r,k){
+  const e=r.extra||{},dv=e[PLUG[k].d],tv=e[PLUG[k].t];
+  let date="";
+  if(dv&&typeof dv==="object"&&dv.d)date=dv.d.slice(0,10);
+  else if(typeof dv==="number"&&dv>20000){const d=new Date(Date.UTC(1899,11,30)+dv*864e5);date=d.toISOString().slice(0,10)}
+  else if(typeof dv==="string"){let m=dv.match(/(\d{4})-(\d{2})-(\d{2})/);if(m)date=m[0];else{m=dv.match(/(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?/);if(m){const y=m[3]?(m[3].length===2?"20"+m[3]:m[3]):(S.meta.date||todayISO()).slice(0,4);date=y+"-"+pad(m[2])+"-"+pad(m[1])}}}
+  if(!date)return"";
+  let time="00:00";
+  if(tv&&typeof tv==="object"&&tv.d)time=tv.d.slice(11,16);
+  else if(typeof tv==="number"&&tv<1){const mins=Math.round(tv*1440);time=pad(Math.floor(mins/60)%24)+":"+pad(mins%60)}
+  else if(typeof tv==="number"){const h=Number.isInteger(tv)?Math.floor(tv/100):Math.floor(tv),mi=Number.isInteger(tv)?tv%100:Math.round((tv-Math.floor(tv))*100);if(h<24&&mi<60)time=pad(h)+":"+pad(mi)}
+  else if(typeof tv==="string"){let m=tv.trim().match(/^(\d{1,2})(\d{2})$/)||tv.match(/(\d{1,2})[:.h](\d{2})/);if(m)time=pad(m[1])+":"+m[2]}
+  return date+"T"+time;
+}
+function setDT(r,k,val){
+  r.extra=r.extra||{};const c=PLUG[k];
+  if(!val){delete r.extra[c.d];delete r.extra[c.t];return}
+  // same style as the ship's files: date "dd.mm", time "HHMM"
+  r.extra[c.d]=val.slice(8,10)+"."+val.slice(5,7);r.extra[c.t]=val.slice(11,13)+val.slice(14,16);
+}
+const dtShort=v=>v?v.slice(8,10)+"."+v.slice(5,7)+" "+v.slice(11,16):"";
+
 /* ---------- import ---------- */
 async function importFile(file){
-  if(!window.ExcelJS){toast("Не загрузилась библиотека Excel. Переустановите приложение.",4000);return}
+  if(!window.ExcelJS){toast(t("noExcelLib"),4000);return}
   const wb=new ExcelJS.Workbook();
-  try{await wb.xlsx.load(await file.arrayBuffer())}catch(e){toast("Не удалось открыть файл. Нужен формат .xlsx",4000);return}
+  try{await wb.xlsx.load(await file.arrayBuffer())}catch(e){toast(t("badFile"),4000);return}
   let found=null;
   for(const ws of wb.worksheets){
-    // find header row with "CONTAINER"
     for(let r=1;r<=Math.min(25,ws.rowCount);r++){
       const row=ws.getRow(r);let cCol=null;
       row.eachCell({includeEmpty:false},(cell,col)=>{if(cCol==null&&/CONTAINER|КОНТЕЙНЕР|CNTR/i.test(cellText(cell)))cCol=col});
@@ -371,10 +518,10 @@ async function importFile(file){
     }
     if(found)break;
   }
-  if(!found){ // fall back: any column holding container numbers
+  if(!found){
     for(const ws of wb.worksheets){for(let r=1;r<=Math.min(60,ws.rowCount)&&!found;r++){ws.getRow(r).eachCell((cell,col)=>{if(!found&&CN_RE.test(cellText(cell).trim()))found={ws,hdr:r-1,cCol:col}})}if(found)break}
   }
-  if(!found){toast("В файле не найдены номера контейнеров",4000);return}
+  if(!found){toast(t("noCn"),4000);return}
   const {ws,hdr,cCol}=found;
   const isSeaboard=/CONTAINER/i.test(cellText(ws.getCell("B5")))&&/SUPPLY/i.test(cellText(ws.getCell("X6")));
   const out=[];let fileDate=null;const meta={};
@@ -402,34 +549,35 @@ async function importFile(file){
     }
   }else{
     const hrow=ws.getRow(hdr);let lCol=null,sCol=null;
-    hrow.eachCell((cell,col)=>{const t=cellText(cell);if(lCol==null&&/LOCATION|POSITION|POS\b|BAY|STOW|ПОЗИЦ/i.test(t))lCol=col;if(sCol==null&&/SET\s*-?\s*POINT|SETPOINT|SET TEMP|SET\b|TEMP|УСТАВК/i.test(t))sCol=col});
+    hrow.eachCell((cell,col)=>{const x=cellText(cell);if(lCol==null&&/LOCATION|POSITION|POS\b|BAY|STOW|ПОЗИЦ/i.test(x))lCol=col;if(sCol==null&&/SET\s*-?\s*POINT|SETPOINT|SET TEMP|SET\b|TEMP|УСТАВК/i.test(x))sCol=col});
     for(let r=hdr+1;r<=ws.rowCount;r++){
       const cn=cellText(ws.getRow(r).getCell(cCol)).trim(); if(!cn||!/[A-Z]{3,4}/i.test(cn))continue;
       const spRaw=sCol?cellText(ws.getRow(r).getCell(sCol)).trim():"";
       out.push({id:"r"+r+"_"+Math.random().toString(36).slice(2,6),row:null,cn,loc:lCol?cellText(ws.getRow(r).getCell(lCol)).trim():"",spRaw,sp:parseTemp(spRaw,"F"),extra:{},readings:{},remarks:"",alarm:null,mark:null});
     }
   }
-  if(!out.length){toast("Список пуст: не нашёл ни одного контейнера",4000);return}
+  if(!out.length){toast(t("emptyFile"),4000);return}
   const hasReadings=out.some(r=>Object.keys(r.readings).length);
   S.reefers=out;
   for(const k in meta)if(meta[k])S.meta[k]=meta[k];
   const prevDate=fileDate;
   S.meta.date=todayISO();
-  persist();renderAll();
+  persist();
+  closeSettings(true);
   const cC=out.filter(r=>r.sp&&r.sp.unit==="C").length;
-  let html=`<div class="note ok"><b>Загружено ${out.length} риферов</b> из «${esc(file.name)}».${cC?` У ${cC} set point в °C, в отчёте будет пересчитан в °F.`:""}</div>`;
+  let html=`<div class="note ok">${t("loaded",out.length,esc(file.name))}${cC?t("loadedC",cC):""}</div>`;
   if(hasReadings){
-    html+=`<div class="note info" style="margin-top:8px">В файле уже есть показания${prevDate?" за "+ddmm(prevDate):""}. <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="bnClear">Очистить, начать новый день</button><button class="btn" type="button" id="bnKeep">Оставить и продолжить</button></div></div>`;
+    html+=`<div class="note info" style="margin-top:8px">${t("hasReadings",prevDate?t("forD")+ddmm(prevDate):"")} <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="bnClear">${t("clearNew")}</button><button class="btn" type="button" id="bnKeep">${t("keep")}</button></div></div>`;
   }
   $("#banner").innerHTML=html;
   if(hasReadings){
-    $("#bnClear").onclick=()=>{newDay();$("#banner").innerHTML=`<div class="note ok">Показания очищены. Дата отчёта: ${ddmm(S.meta.date)}.</div>`};
+    $("#bnClear").onclick=()=>{newDay();$("#banner").innerHTML=`<div class="note ok">${t("cleared",ddmm(S.meta.date))}</div>`};
     $("#bnKeep").onclick=()=>{if(prevDate){S.meta.date=prevDate;persist();renderAll()}$("#banner").innerHTML=""};
-  }
+  }else setTimeout(()=>{if(/note ok/.test($("#banner").innerHTML))$("#banner").innerHTML=""},8000);
 }
 function newDay(){for(const r of S.reefers){r.readings={};r.alarm=null;r.mark=null;r.remarks=""}S.meta.date=todayISO();S.slot=defaultSlot();persist();renderAll()}
 
-/* ---------- export ---------- */
+/* ---------- export (always °F) ---------- */
 async function buildWorkbook(){
     const wb=new ExcelJS.Workbook();await wb.xlsx.load(b64ToBuf(TEMPLATE_B64));
     const ws=wb.worksheets[0];
@@ -441,7 +589,6 @@ async function buildWorkbook(){
     if(m.loadPort)ws.getCell("C4").value=m.loadPort;
     if(m.dischPort)ws.getCell("AL3").value=m.dischPort;
     if(m.mech)ws.getCell("AJ2").value=m.mech;
-    // rows: keep imported positions, append the rest after
     let maxRow=6;for(const r of S.reefers)if(r.row)maxRow=Math.max(maxRow,r.row);
     let next=maxRow+1;const used=new Set();
     const RED={type:"pattern",pattern:"solid",fgColor:{argb:"FFFF9999"}},YEL={type:"pattern",pattern:"solid",fgColor:{argb:"FFFFFF00"}};
@@ -469,8 +616,8 @@ async function buildWorkbook(){
     return new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
 async function exportXlsx(){
-  if(!S.reefers.length){toast("Сначала загрузите список риферов");return}
-  if(!window.ExcelJS){toast("Не загрузилась библиотека Excel. Переустановите приложение.",4000);return}
+  if(!S.reefers.length){toast(t("needList"));return}
+  if(!window.ExcelJS){toast(t("noExcelLib"),4000);return}
   const btn=$("#btnExport");btn.disabled=true;
   try{
     const blob=await buildWorkbook();const m=S.meta;
@@ -478,117 +625,129 @@ async function exportXlsx(){
     const name=`SEABOARD-DAILY-REEFER-REPORT-${vessel}-${m.date}.xlsx`;
     const file=new File([blob],name,{type:blob.type});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:name});toast("Готово: "+name,3500)}catch(e){if(e&&e.name!=="AbortError")throw e}
+      try{await navigator.share({files:[file],title:name});toast(t("fileDone",name),3500)}catch(e){if(e&&e.name!=="AbortError")throw e}
     }else{
-      const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);toast("Файл сохранён: "+name,3500);
+      const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);toast(t("fileSaved",name),3500);
     }
   }catch(e){
-    toast("Не удалось сохранить файл"+(e&&e.message?": "+e.message:""),4000);
+    toast(t("fileErr")+(e&&e.message?": "+e.message:""),4000);
   }finally{btn.disabled=false}
 }
 
 /* ---------- list ---------- */
 let filter="todo";
-function sortedReefers(){return S.reefers.slice()}
 function renderHeader(){
   const n=S.reefers.length,done=S.reefers.filter(r=>isDone(r,S.slot)).length;
-  $("#hdrCount").innerHTML=`${done}/${n}<small>сделано</small>`;
+  $("#hdrCount").innerHTML=`${done}/${n}<small>${esc(t("done_lbl"))}</small>`;
   $("#prog").style.width=n?(done/n*100)+"%":"0";
-  $("#hdrSub").textContent=n?`${S.meta.vessel||"Судно"} · ${ddmm(S.meta.date)}`:"Загрузите список риферов";
+  $("#hdrSub").textContent=n?`${S.meta.vessel||t("vessel")} · ${ddmm(S.meta.date)}`:t("sub_empty");
   document.querySelectorAll(".slots button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.slot===S.slot)));
 }
 function renderList(){
   const el=$("#list");const q=$("#q").value.trim().toUpperCase().replace(/\s+/g,"");
   if(!S.reefers.length){
-    el.innerHTML=`<div class="empty"><h2>Список риферов пуст</h2><p>Нажмите «Загрузить список» и выберите Excel-файл с телефона: вчерашний отчёт SEABOARD или любой файл, где есть колонка CONTAINER (и, если есть, LOCATION и SET POINT).</p><p>Потом на каждом рифере: фото дисплея, обвести пальцем supply и return, проверить, «Сохранить → следующий». В конце обхода «Скачать Excel». Интернет не нужен.</p><button class="btn primary" type="button" id="emptyImport">Загрузить список</button></div>`;
-    $("#emptyImport").onclick=()=>$("#fileImport").click();return;
+    el.innerHTML=`<div class="empty"><h2>${t("empty_h")}</h2><p>${t("empty_p")}</p><button class="btn primary" type="button" id="emptyOpen">${t("empty_btn")}</button></div>`;
+    $("#emptyOpen").onclick=()=>openSettings();return;
   }
-  let items=sortedReefers();
-  if(q)items=items.filter(r=>(r.cn+r.loc).toUpperCase().replace(/\s+/g,"").includes(q));
+  let items=S.reefers.slice();
+  if(q){
+    const key=r=>(r.cn+" "+r.loc).toUpperCase().replace(/\s+/g,"");
+    items=items.filter(r=>key(r).includes(q));
+    // reefers whose number ends with the typed digits come first
+    const ends=r=>{const cn=r.cn.toUpperCase().replace(/\s+/g,"");return cn.endsWith(q)||cn.slice(0,-1).endsWith(q)?0:1};
+    items.sort((a,b)=>ends(a)-ends(b));
+  }
   else if(filter==="todo")items=items.filter(r=>!isDone(r,S.slot));
+  else if(filter==="done")items=items.filter(r=>isDone(r,S.slot));
   else if(filter==="flag")items=items.filter(r=>r.alarm||r.mark);
-  if(!items.length){el.innerHTML=`<div class="empty"><p>${q?"Ничего не найдено.":filter==="todo"?"Все риферы этого обхода записаны. Можно скачать Excel.":"Нет алармов и отметок."}</p></div>`;return}
+  if(!items.length){el.innerHTML=`<div class="empty"><p>${q?t("nf_search"):filter==="todo"?t("nf_todo"):filter==="done"?t("nf_done"):t("nf_flag")}</p></div>`;return}
   el.innerHTML=items.map(r=>{
     const x=reading(r,S.slot);const done=isDone(r,S.slot);
     const cls=["item",r.alarm?"alarm":r.mark?"mark":done?"done":""].join(" ");
-    const tags=(r.alarm?`<span class="tag alarm">Аларм${r.alarm.code?" "+esc(r.alarm.code):""}</span>`:"")+(r.mark?`<span class="tag mark">Марк</span>`:"")+(r.sp&&r.sp.unit==="C"?`<span class="tag c">SP °C</span>`:"");
-    const vals=done?`<div><span class="lbl">S</span>${fmt(x.sup)}</div><div><span class="lbl">R</span>${fmt(x.ret)}</div>`:`<span class="todo">не записан</span>`;
-    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span>SP ${esc(r.sp?fmtSp(spF(r))+" °F":r.spRaw||"—")}</span>${tags}</span></button>`;
+    const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}</span>`:"");
+    const vals=done?`<div><span class="lbl">S</span>${fmt(dU(x.sup))}</div><div><span class="lbl">R</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
+    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span>SP ${esc(spText(r))}</span>${tags}</span></button>`;
   }).join("");
 }
 function renderAll(){renderHeader();renderList()}
 
 /* ---------- entry sheet ---------- */
-let cur=null,draft=null,inUnit="F",auto={sup:false,ret:false},shotCtl=null,lastBlob=null;
+let cur=null,draft=null,auto={sup:false,ret:false},lastBlob=null,initTxt={sup:"",ret:""};
 function openSheet(id){
   cur=S.reefers.find(r=>r.id===id);if(!cur)return;
   const x=reading(cur,S.slot);
   draft={sup:x?x.sup:null,ret:x?x.ret:null,fromC:x?!!x.fromC:false,cRaw:x&&x.cRaw||null,alarm:cur.alarm?Object.assign({},cur.alarm):null,mark:cur.mark?Object.assign({},cur.mark):null,remarks:cur.remarks||""};
-  inUnit="F";auto={sup:false,ret:false};lastBlob=null;
+  auto={sup:false,ret:false};lastBlob=null;
   $("#shCn").textContent=cur.cn;
-  $("#shSub").textContent=S.reefers.indexOf(cur)+1+" из "+S.reefers.length;
+  $("#shSub").textContent=(S.reefers.indexOf(cur)+1)+" "+t("of")+" "+S.reefers.length;
   $("#shLoc").textContent=cur.loc||"—";
   $("#shSp").textContent=spText(cur);
   $("#shSlot").textContent=SLOTS[S.slot].label;
-  $("#inSup").value=draft.sup==null?"":fmt(draft.sup);
-  $("#inRet").value=draft.ret==null?"":fmt(draft.ret);
+  $("#inSup").value=initTxt.sup=draft.sup==null?"":fmt(dU(draft.sup));
+  $("#inRet").value=initTxt.ret=draft.ret==null?"":fmt(dU(draft.ret));
   $("#photoBox").hidden=true;$("#ocrNote").innerHTML="";
   $("#alCode").value=draft.alarm?draft.alarm.code||"":"";
   $("#alText").value=draft.alarm?draft.alarm.text||"":"";
   $("#mkText").value=draft.mark?draft.mark.text||"":"";
   $("#rmText").value=draft.remarks;
-  const hist=Object.keys(SLOTS).filter(k=>k!==S.slot&&isDone(cur,k)).map(k=>{const y=cur.readings[k];return`<div>${SLOTS[k].label}: supply <span class="num">${fmt(y.sup)}</span> · return <span class="num">${fmt(y.ret)}</span> °F</div>`});
-  $("#shHist").innerHTML=hist.length?"<div>Другие обходы сегодня:</div>"+hist.join(""):"";
+  $("#rmBox").open=false;
+  $("#plugIn").value=getDT(cur,"in");$("#plugOut").value=getDT(cur,"out");
+  $("#plugBox").open=false;
+  const hist=Object.keys(SLOTS).filter(k=>k!==S.slot&&isDone(cur,k)).map(k=>{const y=cur.readings[k];return`${SLOTS[k].label} <span class="num">${fmt(dU(y.sup))} / ${fmt(dU(y.ret))}</span>`});
+  $("#shHist").innerHTML=hist.length?hist.join(" · ")+" "+U():"";
   renderSheet();
   $("#sheet").hidden=false;$("#sheet").scrollTop=0;document.body.style.overflow="hidden";
 }
 function closeSheet(){$("#sheet").hidden=true;document.body.style.overflow="";cur=null;renderAll()}
+function renderSummaries(){
+  const rm=$("#rmText").value.trim();$("#rmSum").textContent=rm;
+  const a=$("#plugIn").value,b=$("#plugOut").value;
+  $("#plugSum").textContent=[a?"▲ "+dtShort(a):"",b?"▼ "+dtShort(b):""].filter(Boolean).join("  ");
+}
 function renderSheet(){
-  $("#uF").setAttribute("aria-pressed",String(inUnit==="F"));$("#uC").setAttribute("aria-pressed",String(inUnit==="C"));
-  $("#uSup").textContent=$("#uRet").textContent="°"+inUnit;
-  $("#unitHint").textContent=inUnit==="C"?"будет пересчитано в °F при сохранении":"";
+  $("#uSup").textContent=$("#uRet").textContent=U();
   $("#boxSup").classList.toggle("auto",auto.sup);$("#boxRet").classList.toggle("auto",auto.ret);
   $("#btnAlarm").setAttribute("aria-pressed",String(!!draft.alarm));$("#alarmPanel").hidden=!draft.alarm;
   $("#btnMark").setAttribute("aria-pressed",String(!!draft.mark));$("#markPanel").hidden=!draft.mark;
-  renderConv();
+  renderSummaries();renderConv();
 }
 function readInputs(){
-  const p=(id)=>{const t=$(id).value.trim();if(!t)return null;const v=parseFloat(t.replace(",",".").replace("−","-"));return isNaN(v)?NaN:v};
+  const p=(id)=>{const x=$(id).value.trim();if(!x)return null;const v=parseFloat(x.replace(",",".").replace("−","-"));return isNaN(v)?NaN:v};
   return{sup:p("#inSup"),ret:p("#inRet")};
 }
 function renderConv(){
   const v=readInputs();let html="";
-  if(isNaN(v.sup)||isNaN(v.ret))html+=`<div class="note alarm">Проверьте число: допускаются цифры, точка и минус.</div>`;
-  if(inUnit==="C"&&(v.sup!=null||v.ret!=null)){
-    html+=`<div class="note warn"><b>Дисплей в °C.</b> В отчёт пойдёт: supply ${fmt(v.sup==null||isNaN(v.sup)?null:c2f(v.sup))} °F, return ${fmt(v.ret==null||isNaN(v.ret)?null:c2f(v.ret))} °F.</div>`;
-  }else if(draft.fromC&&draft.cRaw&&!auto.sup&&!auto.ret&&inUnit==="F"){
-    html+=`<div class="note info">Ранее переведено из °C (${esc(draft.cRaw)}).</div>`;
+  if(isNaN(v.sup)||isNaN(v.ret))html+=`<div class="note alarm">${t("badNum")}</div>`;
+  if(P.unit==="C"&&(v.sup!=null||v.ret!=null)&&!isNaN(v.sup)&&!isNaN(v.ret)){
+    html+=`<div class="note info">${t("cIn",fmt(fromU(v.sup)),fmt(fromU(v.ret)))}</div>`;
+  }else if(draft.fromC&&draft.cRaw&&!auto.sup&&!auto.ret&&P.unit==="F"){
+    html+=`<div class="note info">${t("prevC",esc(draft.cRaw))}</div>`;
   }
   const sp=spF(cur);const tol=parseFloat(S.meta.tol)||3;
-  const supF=v.sup==null||isNaN(v.sup)?null:(inUnit==="C"?c2f(v.sup):v.sup);
+  const supF=v.sup==null||isNaN(v.sup)?null:fromU(v.sup);
   if(sp!=null&&supF!=null&&Math.abs(supF-sp)>tol){
-    html+=`<div class="note alarm"><b>Supply ${fmt(supF)} °F</b> отличается от set point ${fmtSp(sp)} °F на ${fmt(Math.abs(supF-sp))} °F. Если это не разморозка (defrost), поставьте Марк или Аларм.</div>`;
+    const diff=P.unit==="C"?r1(Math.abs(supF-sp)*5/9):Math.abs(supF-sp);
+    html+=`<div class="note alarm">${t("devWarn",fmt(dU(supF))+" "+U(),fmtSp(P.unit==="C"?f2c(sp):sp)+" "+U(),fmt(diff)+" "+U())}</div>`;
   }
   $("#convNote").innerHTML=html;
 }
 function commit(){
   const v=readInputs();
-  if(isNaN(v.sup)||isNaN(v.ret)){toast("Исправьте число перед сохранением");return false}
-  let sup=v.sup,ret=v.ret,fromC=draft.fromC,cRaw=draft.cRaw;
-  if(inUnit==="C"){cRaw=`${fmt(sup)} / ${fmt(ret)} °C`;sup=sup==null?null:c2f(sup);ret=ret==null?null:c2f(ret);fromC=true}
-  else if(!(fmt(draft.sup)===fmt(sup)&&fmt(draft.ret)===fmt(ret))){fromC=false;cRaw=null}
+  if(isNaN(v.sup)||isNaN(v.ret)){toast(t("fixNum"));return false}
+  // untouched fields keep the stored °F value (no rounding drift through °C)
+  const keepSup=$("#inSup").value.trim()===initTxt.sup,keepRet=$("#inRet").value.trim()===initTxt.ret;
+  let sup=keepSup?draft.sup:fromU(v.sup),ret=keepRet?draft.ret:fromU(v.ret),fromC=draft.fromC,cRaw=draft.cRaw;
+  if(P.unit==="C"&&!(keepSup&&keepRet)){cRaw=`${fmt(v.sup)} / ${fmt(v.ret)} °C`;fromC=true}
+  else if(!(keepSup&&keepRet)&&!draft.convC){fromC=false;cRaw=null}
+  if(draft.convC){fromC=true;cRaw=draft.convC}
   cur.readings=cur.readings||{};
   if(sup==null&&ret==null)delete cur.readings[S.slot];
   else cur.readings[S.slot]={sup,ret,fromC,cRaw,at:nowHM(),src:lastBlob?"photo":"manual"};
   cur.alarm=draft.alarm?{code:$("#alCode").value.trim(),text:$("#alText").value.trim()}:null;
   cur.mark=draft.mark?{text:$("#mkText").value.trim()}:null;
   cur.remarks=$("#rmText").value.trim();
+  setDT(cur,"in",$("#plugIn").value);setDT(cur,"out",$("#plugOut").value);
   persist();return true;
-}
-function nextTodo(){
-  const list=sortedReefers();const i=list.indexOf(cur);
-  for(let k=1;k<=list.length;k++){const r=list[(i+k)%list.length];if(!isDone(r,S.slot))return r}
-  return null;
 }
 
 /* ---------- photo recognition (offline, on the phone) ---------- */
@@ -607,31 +766,34 @@ const PICK_LABEL={sup:"SUPPLY",ret:"RETURN",sp:"SET POINT"};
 let view=null;
 function drawView(){const img=$("#photoImg"),cv=$("#photoCv");if(!img.naturalWidth)return;if(!view)view={x:0,y:0,w:img.naturalWidth,h:img.naturalHeight};
   const W=Math.min(1200,Math.round(view.w));cv.width=W;cv.height=Math.round(W*view.h/view.w);cv.getContext("2d").drawImage(img,view.x,view.y,view.w,view.h,0,0,cv.width,cv.height);
-  const z=$("#btnZoom");const zoomed=view.w<img.naturalWidth-1;z.textContent=zoomed?"Весь кадр":"Приблизить"}
-function setPick(t){if(t==="zoom"){const img=$("#photoImg");if(view&&view.w<img.naturalWidth-1){view=null;drawView();t=pickT}else{pickT="zoom";document.querySelectorAll(".pick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t==="zoom")));$("#pickHint").textContent="Обведите пальцем экран рифера, чтобы приблизить";return}}
-  pickT=t;document.querySelectorAll(".pick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));$("#pickHint").textContent=`Обведите пальцем число ${PICK_LABEL[t]} на фото`}
+  const z=$("#btnZoom");const zoomed=view.w<img.naturalWidth-1;z.textContent=zoomed?t("full"):t("zoom")}
+function setPick(x){if(x==="zoom"){const img=$("#photoImg");if(view&&view.w<img.naturalWidth-1){view=null;drawView();x=pickT==="zoom"?"sup":pickT}else{pickT="zoom";document.querySelectorAll(".pick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t==="zoom")));$("#pickHint").textContent=t("hintZoom");return}}
+  pickT=x;document.querySelectorAll(".pick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===x)));$("#pickHint").textContent=t("hintPick",PICK_LABEL[x])}
 function readSelection(box){
   const img=$("#photoImg");
   let r=null;try{r=ReeferOCR.readBox(img,box)}catch(e){r=null}
-  const t=pickT;
-  if(!r||isNaN(r.value)){$("#ocrNote").innerHTML=`<div class="note warn">Не разобрал цифры. Обведите число ещё раз, чуть шире, или введите вручную.</div>`;return}
-  let note="";
-  if(r.unit==="C"&&inUnit!=="C"){inUnit="C";note=`<div class="note warn" style="margin-top:8px"><b>На дисплее °C.</b> При сохранении переведу в °F.</div>`}
-  if(t==="sp"){
-    const spList=spF(cur);const unit=r.unit||inUnit;const spDispF=unit==="C"?c2f(r.value):r.value;
-    let html=`<div class="note info">Set point на дисплее: <b class="num">${fmt(r.value)} °${unit}</b>${unit==="C"?` (${fmt(spDispF)} °F)`:""}.</div>`;
-    if(spList!=null&&Math.abs(spDispF-spList)>0.25)html=`<div class="note alarm"><b>Set point на дисплее ${fmt(r.value)} °${unit}</b>${unit==="C"?` (${fmt(spDispF)} °F)`:""}, а в списке ${fmtSp(spList)} °F. <button class="btn" type="button" id="addSpNote" style="margin-top:6px;width:100%">Добавить в примечания</button></div>`;
+  const k=pickT;
+  if(!r||isNaN(r.value)){$("#ocrNote").innerHTML=`<div class="note warn">${t("ocrFail")}</div>`;return}
+  // value in the unit chosen in settings
+  let val=r.value,note="";
+  if(r.unit&&r.unit!==P.unit){val=r.unit==="C"?c2f(r.value):f2c(r.value);note=`<div class="note warn" style="margin-top:8px">${t("ocrConv",fmt(r.value)+" °"+r.unit,fmt(val)+" "+U())}</div>`;if(k!=="sp"&&r.unit==="C")draft.convC=`${fmt(r.value)} °C`}
+  if(k==="sp"){
+    const spList=spF(cur);const spDispF=fromU(val);
+    let html=`<div class="note info">${t("spSeen",fmt(val)+" "+U())}</div>`;
+    if(spList!=null&&Math.abs(spDispF-spList)>0.25)html=`<div class="note alarm">${t("spDiff",fmt(val)+" "+U(),spText(cur))} <button class="btn" type="button" id="addSpNote" style="margin-top:6px;width:100%">${t("addNote")}</button></div>`;
     $("#ocrNote").innerHTML=html+note;
-    const a=$("#addSpNote");if(a)a.onclick=()=>{const tx=`Set point ${fmt(r.value)}${unit==="C"?" C":""} observed`;const el=$("#rmText");el.value=el.value?el.value+" / "+tx:tx;a.disabled=true;a.textContent="Добавлено"};
+    const a=$("#addSpNote");if(a)a.onclick=()=>{const tx=`Set point ${fmt(r.value)}${r.unit==="C"?" C":""} observed`;const el=$("#rmText");el.value=el.value?el.value+" / "+tx:tx;a.disabled=true;a.textContent=t("added");renderSummaries()};
     setPick($("#inSup").value.trim()?"ret":"sup");renderSheet();return;
   }
-  const id=t==="sup"?"#inSup":"#inRet";$(id).value=fmt(r.value);auto[t]=true;
-  // °C guess: list setpoint in °F but the reading sits near the °C equivalent
+  const id=k==="sup"?"#inSup":"#inRet";$(id).value=fmt(val);auto[k]=true;
+  // °C guess: reading sits near the °C equivalent of a °F set point
   const sp=spF(cur);
-  if(!r.unit&&inUnit==="F"&&sp!=null){const spC=(sp-32)*5/9;if(Math.abs(r.value-sp)>8&&Math.abs(r.value-spC)<4){inUnit="C";note+=`<div class="note warn" style="margin-top:8px"><b>Похоже, дисплей в °C</b> (${fmt(r.value)} близко к set point ${fmt(spC)} °C). Переключил ввод на °C, при сохранении будет °F. Если это не так, нажмите °F.</div>`}}
-  const low=r.score<0.55?" Уверенность низкая.":"";
-  $("#ocrNote").innerHTML=`<div class="note info">${t==="sup"?"Supply":"Return"}: <b class="num">${fmt(r.value)}</b>${r.unit?" °"+r.unit:""}. Сверьте с дисплеем.${low}</div>`+note;
-  if(t==="sup")setPick("ret");
+  if(!r.unit&&P.unit==="F"&&sp!=null){const spC=(sp-32)*5/9;if(Math.abs(r.value-sp)>8&&Math.abs(r.value-spC)<4){
+    note+=`<div class="note warn" style="margin-top:8px">${t("guessC",fmt(r.value),fmt(spC))} <button class="btn" type="button" id="convGuess" style="margin-top:6px;width:100%">${t("convBtn")}</button></div>`}}
+  const low=r.score<0.55?t("lowConf"):"";
+  $("#ocrNote").innerHTML=`<div class="note info">${t("ocrRead",k==="sup"?"Supply":"Return",fmt(val)+" "+U())}${low}</div>`+note;
+  const cg=$("#convGuess");if(cg)cg.onclick=()=>{const raw=parseFloat($(id).value);if(!isNaN(raw)){$(id).value=fmt(c2f(raw));draft.convC=`${fmt(raw)} °C`;auto[k]=true}cg.disabled=true;renderSheet()};
+  if(k==="sup")setPick("ret");
   renderSheet();
 }
 (function initStage(){
@@ -640,7 +802,7 @@ function readSelection(box){
   st.addEventListener("pointerdown",e=>{e.preventDefault();st.setPointerCapture(e.pointerId);start=pt(e);box={x0:start.x,y0:start.y,x1:start.x,y1:start.y};sb.hidden=false;draw()});
   st.addEventListener("pointermove",e=>{if(!start)return;const p=pt(e);box={x0:Math.min(start.x,p.x),y0:Math.min(start.y,p.y),x1:Math.max(start.x,p.x),y1:Math.max(start.y,p.y)};draw()});
   const end=e=>{if(!start)return;const p=pt(e);const W=p.W,H=p.H;start=null;
-    if(pickT!=="zoom"&&(box.x1-box.x0<12||box.y1-box.y0<12)){ // a tap: take a default box around it
+    if(pickT!=="zoom"&&(box.x1-box.x0<12||box.y1-box.y0<12)){
       const cx=(box.x0+box.x1)/2,cy=(box.y0+box.y1)/2;box={x0:Math.max(0,cx-W*0.2),x1:Math.min(W,cx+W*0.2),y0:Math.max(0,cy-W*0.09),y1:Math.min(H,cy+W*0.09)};draw()}
     const kx=view.w/W,ky=view.h/H;const nb={x0:view.x+box.x0*kx,y0:view.y+box.y0*ky,x1:view.x+box.x1*kx,y1:view.y+box.y1*ky};
     if(pickT==="zoom"){const img=$("#photoImg");if(nb.x1-nb.x0>40&&nb.y1-nb.y0>30){const padx=(nb.x1-nb.x0)*0.05,pady=(nb.y1-nb.y0)*0.05;view={x:Math.max(0,nb.x0-padx),y:Math.max(0,nb.y0-pady),w:Math.min(img.naturalWidth,nb.x1+padx)-Math.max(0,nb.x0-padx),h:Math.min(img.naturalHeight,nb.y1+pady)-Math.max(0,nb.y0-pady)};drawView();st.scrollIntoView({block:"center",behavior:"smooth"})}sb.hidden=true;setPick($("#inSup").value.trim()?"ret":"sup");return}
@@ -650,33 +812,55 @@ function readSelection(box){
   function draw(){sb.style.left=box.x0+"px";sb.style.top=box.y0+"px";sb.style.width=(box.x1-box.x0)+"px";sb.style.height=(box.y1-box.y0)+"px"}
   document.querySelectorAll(".pick button").forEach(b=>b.onclick=()=>setPick(b.dataset.t));
 })();
+
 /* ---------- settings ---------- */
-function openSettings(){
-  const m=S.meta;$("#mDate").value=m.date;$("#mVessel").value=m.vessel;$("#mVoyage").value=m.voyage;$("#mLoad").value=m.loadPort;$("#mDisch").value=m.dischPort;$("#mMech").value=m.mech;$("#mTol").value=m.tol??3;
-  resetConfirm("#newDayBox","btnNewDay","Начать новый день");resetConfirm("#wipeBox","btnWipe","Удалить все риферы");
-  renderSync();$("#settings").hidden=false;document.body.style.overflow="hidden";
+let offOpen=false;
+function segSet(sel,val){document.querySelectorAll(sel+" button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(val))))}
+function renderSettings(){
+  segSet("#segUnit",P.unit);segSet("#segLang",P.lang);segSet("#segTheme",P.theme);segSet("#segScan",P.scan?"1":"0");
+  $("#offBody").hidden=!offOpen;
+  const g=$("#offGate");
+  if(offOpen)g.innerHTML=`<button class="btn" type="button" id="offLock">${t("offClose")}</button>`;
+  else if(P.pin)g.innerHTML=`<div class="lock"><input class="txt num" id="pinIn" type="password" inputmode="numeric" autocomplete="off" placeholder="${esc(t("pinPh"))}"><button class="btn primary" type="button" id="pinGo">${t("pinOk")}</button></div>`;
+  else g.innerHTML=`<button class="btn" type="button" id="offGo">${t("offOpen")}</button>`;
+  if($("#offLock"))$("#offLock").onclick=()=>{saveMeta();offOpen=false;renderSettings()};
+  if($("#offGo"))$("#offGo").onclick=()=>{offOpen=true;renderSettings()};
+  if($("#pinGo")){const go=()=>{if($("#pinIn").value===P.pin){offOpen=true;renderSettings()}else{toast(t("pinBad"));$("#pinIn").value=""}};$("#pinGo").onclick=go;$("#pinIn").onkeydown=e=>{if(e.key==="Enter")go()}}
+  if(offOpen){
+    const m=S.meta;$("#mDate").value=m.date;$("#mVessel").value=m.vessel;$("#mVoyage").value=m.voyage;$("#mLoad").value=m.loadPort;$("#mDisch").value=m.dischPort;$("#mMech").value=m.mech;$("#mTol").value=m.tol??3;
+    renderPin();
+    resetConfirm("#newDayBox","btnNewDay",t("newDayBtn"));resetConfirm("#wipeBox","btnWipe",t("wipeBtn"));
+  }
 }
-function closeSettings(){
-  const m=S.meta;m.date=$("#mDate").value||m.date;m.vessel=$("#mVessel").value.trim();m.voyage=$("#mVoyage").value.trim();m.loadPort=$("#mLoad").value.trim();m.dischPort=$("#mDisch").value.trim();m.mech=$("#mMech").value.trim();const t=parseFloat(String($("#mTol").value).replace(",","."));m.tol=isNaN(t)?3:t;
-  persist();$("#settings").hidden=true;document.body.style.overflow="";renderAll();
+function renderPin(){
+  const b=$("#pinBox");
+  b.innerHTML=`<p class="foot-note" style="margin:0 0 6px">${P.pin?t("pinSetTxt"):t("pinNone")}</p><div class="lock"><input class="txt num" id="pinNew" type="password" inputmode="numeric" autocomplete="off" placeholder="${esc(t("pinNew"))}"><button class="btn" type="button" id="pinSet">${t("pinSave")}</button></div>${P.pin?`<button class="btn ghost" type="button" id="pinDel" style="margin-top:8px;width:100%">${t("pinRemove")}</button>`:""}`;
+  $("#pinSet").onclick=()=>{const v=$("#pinNew").value.trim();if(!/^\d{4,8}$/.test(v)){toast(t("pinShort"));return}P.pin=v;savePrefs();toast(t("pinDone"));renderPin()};
+  if($("#pinDel"))$("#pinDel").onclick=()=>{P.pin="";savePrefs();toast(t("pinRemoved"));renderPin()};
 }
-function resetConfirm(boxSel,id,label){$(boxSel).innerHTML=`<button class="btn${id==="btnWipe"?" ghost":""}" type="button" id="${id}">${label}</button>`;$("#"+id).onclick=()=>askConfirm(boxSel,id,label)}
+function openSettings(){offOpen=false;renderSettings();$("#settings").hidden=false;$("#settings").scrollTop=0;document.body.style.overflow="hidden"}
+function saveMeta(){
+  if(!offOpen)return;
+  const m=S.meta;m.date=$("#mDate").value||m.date;m.vessel=$("#mVessel").value.trim();m.voyage=$("#mVoyage").value.trim();m.loadPort=$("#mLoad").value.trim();m.dischPort=$("#mDisch").value.trim();m.mech=$("#mMech").value.trim();const x=parseFloat(String($("#mTol").value).replace(",","."));m.tol=isNaN(x)?3:x;
+  persist();
+}
+function closeSettings(skipSave){if(!skipSave)saveMeta();offOpen=false;$("#settings").hidden=true;document.body.style.overflow="";renderAll()}
+function resetConfirm(boxSel,id,label){$(boxSel).innerHTML=`<button class="btn${id==="btnWipe"?" ghost":""}" type="button" id="${id}">${esc(label)}</button>`;$("#"+id).onclick=()=>askConfirm(boxSel,id,label)}
 function askConfirm(boxSel,id,label){
-  $(boxSel).innerHTML=`<div class="note warn">Точно? Это нельзя отменить. <div style="display:flex;gap:8px;margin-top:8px"><button class="btn primary" type="button" id="${id}Yes">Да</button><button class="btn" type="button" id="${id}No">Отмена</button></div></div>`;
+  $(boxSel).innerHTML=`<div class="note warn">${t("sure")} <div style="display:flex;gap:8px;margin-top:8px"><button class="btn primary" type="button" id="${id}Yes">${t("yes")}</button><button class="btn" type="button" id="${id}No">${t("cancel")}</button></div></div>`;
   $("#"+id+"No").onclick=()=>resetConfirm(boxSel,id,label);
-  $("#"+id+"Yes").onclick=()=>{if(id==="btnNewDay"){newDay();$("#mDate").value=S.meta.date;toast("Новый день: "+ddmm(S.meta.date))}else{S.reefers=[];persist();renderAll();toast("Список удалён")}resetConfirm(boxSel,id,label)};
+  $("#"+id+"Yes").onclick=()=>{if(id==="btnNewDay"){newDay();$("#mDate").value=S.meta.date;toast(t("newDayToast",ddmm(S.meta.date)))}else{S.reefers=[];persist();renderAll();toast(t("wiped"))}resetConfirm(boxSel,id,label)};
 }
 
-/* ---------- manual add ---------- */
+/* ---------- manual add (officer) ---------- */
 function addManual(){
-  const id="m"+Date.now().toString(36);
-  S.reefers.push({id,row:null,cn:"",loc:"",spRaw:"",sp:null,extra:{},readings:{},remarks:"",alarm:null,mark:null,manual:true});
-  const r=S.reefers[S.reefers.length-1];
-  // tiny inline form inside the banner
-  $("#banner").innerHTML=`<div class="panel"><h3 style="margin:0">Новый рифер</h3><div class="form"><label>Номер контейнера<input class="txt num" id="nCn" placeholder="SZLU 204605 0" autocomplete="off"></label><div class="two"><label>Позиция<input class="txt num" id="nLoc" placeholder="130684" inputmode="numeric"></label><label>Set point<input class="txt num" id="nSp" placeholder="34 F"></label></div><div style="display:flex;gap:8px"><button class="btn primary" type="button" id="nOk">Добавить</button><button class="btn" type="button" id="nCancel">Отмена</button></div></div></div>`;
+  closeSettings();
+  $("#banner").innerHTML=`<div class="panel"><h3 style="margin:0">${t("newReefer")}</h3><div class="form"><label>${t("cnLbl")}<input class="txt num" id="nCn" placeholder="SZLU 204605 0" autocomplete="off"></label><div class="two"><label>${t("posLbl")}<input class="txt num" id="nLoc" placeholder="130684" inputmode="numeric"></label><label>Set point<input class="txt num" id="nSp" placeholder="34 F"></label></div><div style="display:flex;gap:8px"><button class="btn primary" type="button" id="nOk">${t("addOk")}</button><button class="btn" type="button" id="nCancel">${t("cancel")}</button></div></div></div>`;
   $("#nCn").focus();
-  $("#nCancel").onclick=()=>{S.reefers=S.reefers.filter(x=>x!==r);$("#banner").innerHTML=""};
-  $("#nOk").onclick=()=>{const cn=$("#nCn").value.trim().toUpperCase();if(!cn){toast("Введите номер контейнера");return}r.cn=cn;r.loc=$("#nLoc").value.trim();r.spRaw=$("#nSp").value.trim();r.sp=parseTemp(r.spRaw,"F");persist();$("#banner").innerHTML="";renderAll();openSheet(r.id)};
+  $("#nCancel").onclick=()=>{$("#banner").innerHTML=""};
+  $("#nOk").onclick=()=>{const cn=$("#nCn").value.trim().toUpperCase();if(!cn){toast(t("enterCn"));return}
+    const r={id:"m"+Date.now().toString(36),row:null,cn,loc:$("#nLoc").value.trim(),spRaw:$("#nSp").value.trim(),sp:null,extra:{},readings:{},remarks:"",alarm:null,mark:null,manual:true};
+    r.sp=parseTemp(r.spRaw,"F");S.reefers.push(r);persist();$("#banner").innerHTML="";renderAll();openSheet(r.id)};
 }
 
 /* ---------- wiring ---------- */
@@ -684,35 +868,41 @@ $("#btnImport").onclick=()=>$("#fileImport").click();
 $("#fileImport").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)importFile(f)};
 $("#btnExport").onclick=exportXlsx;
 $("#btnAdd").onclick=addManual;
-$("#btnSettings").onclick=openSettings;$("#setBack").onclick=closeSettings;
+$("#btnSettings").onclick=openSettings;$("#setBack").onclick=()=>closeSettings();
+$("#segUnit").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.unit=b.dataset.v;savePrefs();renderSettings()};
+$("#segLang").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.lang=b.dataset.v;savePrefs();applyLang();renderSettings()};
+$("#segTheme").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.theme=b.dataset.v;savePrefs();applyTheme();renderSettings()};
+$("#segScan").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.scan=b.dataset.v==="1";savePrefs();applyPrefs();renderSettings()};
 $("#q").oninput=renderList;
 document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));renderList()});
 document.querySelectorAll(".slots button").forEach(b=>b.onclick=()=>{S.slot=b.dataset.slot;persist();renderAll()});
 $("#list").onclick=e=>{const b=e.target.closest(".item");if(b)openSheet(b.dataset.id)};
 $("#shBack").onclick=closeSheet;
 $("#btnShot").onclick=()=>$("#fileShot").click();
-$("#btnShot2")&&($("#btnShot2").onclick=()=>$("#fileShot").click());
 $("#fileShot").onchange=async e=>{
   const f=e.target.files[0];e.target.value="";if(!f||!cur)return;
-  const blob=await downscale(f).catch(()=>null);if(!blob){toast("Не удалось открыть фото");return}
+  const blob=await downscale(f).catch(()=>null);if(!blob){toast(t("photoFail"));return}
   lastBlob=blob;const img=$("#photoImg");if(img.src)URL.revokeObjectURL(img.src);img.src=URL.createObjectURL(blob);await img.decode().catch(()=>{});view=null;drawView();
   $("#photoBox").hidden=false;$("#ocrNote").innerHTML="";setPick("sup");$("#photoBox").scrollIntoView({block:"start",behavior:"smooth"});
 };
-$("#uF").onclick=()=>{inUnit="F";renderSheet()};$("#uC").onclick=()=>{inUnit="C";renderSheet()};
 ["#inSup","#inRet"].forEach(id=>$(id).addEventListener("input",()=>{auto[id==="#inSup"?"sup":"ret"]=false;$(id==="#inSup"?"#boxSup":"#boxRet").classList.remove("auto");renderConv()}));
-document.querySelectorAll("[data-neg]").forEach(b=>b.onclick=()=>{const el=$("#"+b.dataset.neg);let t=el.value.trim();el.value=t.startsWith("-")?t.slice(1):"-"+t;el.dispatchEvent(new Event("input"));el.focus()});
+document.querySelectorAll("[data-neg]").forEach(b=>b.onclick=()=>{const el=$("#"+b.dataset.neg);let x=el.value.trim();el.value=x.startsWith("-")?x.slice(1):"-"+x;el.dispatchEvent(new Event("input"));el.focus()});
 $("#btnAlarm").onclick=()=>{draft.alarm=draft.alarm?null:{code:"",text:""};renderSheet();if(draft.alarm)$("#alCode").focus()};
 $("#btnMark").onclick=()=>{draft.mark=draft.mark?null:{text:""};renderSheet();if(draft.mark)$("#mkText").focus()};
-$("#alQuick").innerHTML=["High pressure","Low pressure","Sensor fail","Power fail","Defrost","Temp out of range"].map(t=>`<button type="button">${t}</button>`).join("");
+$("#alQuick").innerHTML=["High pressure","Low pressure","Sensor fail","Power fail","Defrost","Temp out of range"].map(x=>`<button type="button">${x}</button>`).join("");
 $("#alQuick").onclick=e=>{const b=e.target.closest("button");if(!b)return;const el=$("#alText");el.value=el.value?el.value+", "+b.textContent:b.textContent};
-$("#btnRecheck").onclick=()=>{const v=readInputs();if(v.sup==null&&v.ret==null||isNaN(v.sup)||isNaN(v.ret)){toast("Сначала введите supply / return");return}
-  const f=x=>x==null?"—":fmt(inUnit==="C"?c2f(x):x);const t=`${nowHM()} Sup ${f(v.sup)} / Ret ${f(v.ret)}`;const el=$("#rmText");el.value=el.value?el.value+" / "+t:t;toast("Перепроверка добавлена в примечания")};
-$("#btnClear").onclick=()=>{$("#inSup").value="";$("#inRet").value="";auto={sup:false,ret:false};draft.fromC=false;renderSheet()};
-$("#btnSave").onclick=()=>{if(commit()){toast("Сохранено");closeSheet()}};
-$("#btnSaveNext").onclick=()=>{if(!commit())return;const n=nextTodo();if(n){toast("Сохранено");openSheet(n.id)}else{toast("Все риферы обхода "+SLOTS[S.slot].label+" записаны");closeSheet()}};
+$("#rmText").addEventListener("input",renderSummaries);
+["#plugIn","#plugOut"].forEach(id=>$(id).addEventListener("input",renderSummaries));
+$("#plugInNow").onclick=()=>{$("#plugIn").value=nowLocal();renderSummaries()};
+$("#plugOutNow").onclick=()=>{$("#plugOut").value=nowLocal();renderSummaries()};
+$("#btnRecheck").onclick=()=>{const v=readInputs();if(v.sup==null&&v.ret==null||isNaN(v.sup)||isNaN(v.ret)){toast(t("recheckFirst"));return}
+  const f=x=>x==null?"—":fmt(fromU(x));const tx=`${nowHM()} Sup ${f(v.sup)} / Ret ${f(v.ret)}`;const el=$("#rmText");el.value=el.value?el.value+" / "+tx:tx;renderSummaries();toast(t("recheckAdded"))};
+$("#btnClear").onclick=()=>{$("#inSup").value="";$("#inRet").value="";auto={sup:false,ret:false};draft.fromC=false;draft.convC=null;renderSheet()};
+// Save: back to the list with an empty search, ready for the next container's last digits
+$("#btnSave").onclick=()=>{if(!commit())return;const all=S.reefers.every(r=>isDone(r,S.slot));closeSheet();toast(all?t("allDone",SLOTS[S.slot].label):t("saved"));const q=$("#q");q.value="";renderList();try{q.focus({preventScroll:true})}catch(e){q.focus()}window.scrollTo(0,0)};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("#sheet").hidden)closeSheet();else if(!$("#settings").hidden)closeSettings()}});
 
-loadLocal();renderAll();renderSync();
+loadPrefs();loadLocal();applyPrefs();renderAll();
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
