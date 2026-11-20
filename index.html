@@ -706,7 +706,7 @@ function renderList(){
     const cls=["item",r.alarm?"alarm":r.mark?"mark":done?"done":""].join(" ");
     const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}</span>`:"");
     const dv=devOf(r,S.slot);
-    const vals=done?`<div${dv!=null?' class="devv"':""}><span class="lbl">S</span>${fmt(dU(x.sup))}${dv!=null?` <b>Δ${dv>0?"+":"−"}${fmt(Math.abs(P.unit==="C"?dv*5/9:dv))}</b>`:""}</div><div><span class="lbl">R</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
+    const vals=done?`<div${dv!=null?' class="devv"':""}><span class="lbl">Supply</span>${fmt(dU(x.sup))}${dv!=null?` <b>Δ${dv>0?"+":"−"}${fmt(Math.abs(P.unit==="C"?dv*5/9:dv))}</b>`:""}</div><div><span class="lbl">Return</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
     return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span class="spb${isFrozen(r)?" frozen":""}">SP ${esc(spText(r))}</span>${tags}</span></button>`;
   }).join("");
 }
