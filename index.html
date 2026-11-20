@@ -166,9 +166,19 @@ h3{margin:4px 0 0;font-size:17px}
 .foot-note{color:var(--muted);font-size:13px}
 @media (max-width:340px){.fields{grid-template-columns:1fr}}
 /* v2: compact entry card, settings rows, collapsible blocks */
-.sheet .wrap{padding-block:8px 110px;gap:10px}
+.sheet>.wrap{padding-block:8px 100px;gap:10px}
 .sheet-head .wrap{padding-block:8px}
 .factline{display:flex;gap:6px;flex-wrap:wrap}
+.sphero{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
+.sphero .factline{flex-direction:column;justify-content:space-between;flex-wrap:nowrap}
+.spbox{display:flex;flex-direction:column;justify-content:center;border:3px solid var(--navy);background:var(--info-bg);border-radius:12px;padding:4px 12px;min-width:0}
+.spbox .k{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--navy)}
+.spbox .v{font-family:var(--font-num);font-size:34px;font-weight:800;line-height:1.05;white-space:nowrap}
+.spbox.frozen{border-color:#1e6fd9;background:#e3efff}
+:root[data-theme="dark"] .spbox.frozen{background:#10243f;border-color:#5aa2ff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .spbox.frozen{background:#10243f;border-color:#5aa2ff}}
+.item .spb{font-family:var(--font-num);font-weight:800;color:var(--ink);background:var(--info-bg);border:1px solid var(--navy);border-radius:6px;padding:0 6px;font-size:15px}
+.item .spb.frozen{border-color:#1e6fd9}
 .factline>span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-family:var(--font-num);font-size:15px;font-weight:600;white-space:nowrap}
 .factline .k{color:var(--muted);font-family:var(--font-ui);font-size:12px;font-weight:600;margin-right:5px;text-transform:uppercase;letter-spacing:.04em}
 .cam .btn.primary{min-height:52px;font-size:17px}
@@ -238,10 +248,12 @@ details.more .body{padding:0 12px 12px;display:grid;gap:8px}
     <div class="sheet-title"><div class="cn" id="shCn"></div><div class="sub" id="shSub"></div></div>
   </div></div>
   <div class="wrap">
-    <div class="factline">
-      <span><span class="k" data-i18n="pos">Поз.</span><span id="shLoc"></span></span>
-      <span><span class="k">SP</span><span id="shSp"></span></span>
-      <span><span class="k" data-i18n="round">Обход</span><span id="shSlot"></span></span>
+    <div class="sphero">
+      <div class="spbox" id="spBox"><span class="k">Set point</span><span class="v" id="shSp"></span></div>
+      <div class="factline">
+        <span><span class="k" data-i18n="pos">Поз.</span><span id="shLoc"></span></span>
+        <span><span class="k" data-i18n="round">Обход</span><span id="shSlot"></span></span>
+      </div>
     </div>
     <div class="cam" id="camBlock">
       <button class="btn primary" type="button" id="btnShot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span data-i18n="shot">Сфотографировать дисплей</span></button>
@@ -462,6 +474,7 @@ function parseTemp(txt,defUnit){
 function spF(r){if(!r.sp)return null;return r.sp.unit==="C"?c2f(r.sp.v):r.sp.v}
 function fmtSp(x){return Number.isInteger(x)?String(x):x.toFixed(1)}
 function spText(r){if(!r.sp)return r.spRaw||"—";const f=spF(r);return P.unit==="C"?`${fmtSp(f2c(f))} °C`:`${fmtSp(f)} °F`}
+function isFrozen(r){const f=spF(r);return f!=null&&f<=14}
 function reading(r,slot){return(r.readings&&r.readings[slot])||null}
 function isDone(r,slot){const x=reading(r,slot);return!!(x&&(x.sup!=null||x.ret!=null))}
 function cellText(cell){
@@ -685,7 +698,7 @@ function renderList(){
     const cls=["item",r.alarm?"alarm":r.mark?"mark":done?"done":""].join(" ");
     const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}</span>`:"");
     const vals=done?`<div><span class="lbl">S</span>${fmt(dU(x.sup))}</div><div><span class="lbl">R</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
-    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span>SP ${esc(spText(r))}</span>${tags}</span></button>`;
+    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span class="spb${isFrozen(r)?" frozen":""}">SP ${esc(spText(r))}</span>${tags}</span></button>`;
   }).join("");
 }
 function renderAll(){renderHeader();renderList()}
@@ -700,7 +713,7 @@ function openSheet(id){
   $("#shCn").textContent=cur.cn;
   $("#shSub").textContent=(S.reefers.indexOf(cur)+1)+" "+t("of")+" "+S.reefers.length;
   $("#shLoc").textContent=cur.loc||"—";
-  $("#shSp").textContent=spText(cur);
+  $("#shSp").textContent=spText(cur);$("#spBox").classList.toggle("frozen",isFrozen(cur));
   $("#shSlot").textContent=SLOTS[S.slot].label;
   $("#inSup").value=initTxt.sup=draft.sup==null?"":fmt(dU(draft.sup));
   $("#inRet").value=initTxt.ret=draft.ret==null?"":fmt(dU(draft.ret));
