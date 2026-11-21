@@ -72,6 +72,9 @@ main .wrap{padding-block:12px 120px;display:grid;gap:12px}
 .chips{display:flex;gap:5px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;font-size:14px;font-weight:600;white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dpsel{min-height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 10px;font-weight:600;font-size:15px;justify-self:start;max-width:100%}
+.dpsel.on{border:2px solid var(--accent)}
+.item .port{font-family:var(--font-num);font-size:13px;font-weight:600;color:var(--muted)}
 .list{display:grid;gap:6px}
 .item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:10px 12px}
 .item.done{border-left-color:var(--ok)}
@@ -239,6 +242,7 @@ details.more .body{padding:0 12px 12px;display:grid;gap:8px}
       <button class="chip" type="button" data-f="dev" aria-pressed="false" data-i18n="fDev">Отклонения</button>
       <button class="chip" type="button" data-f="all" aria-pressed="false" data-i18n="fAll">Все</button>
     </div>
+    <select class="dpsel" id="dpSel" hidden data-i18n-aria="dpAll"></select>
     <div class="list" id="list"></div>
   </div>
 </main>
@@ -255,6 +259,7 @@ details.more .body{padding:0 12px 12px;display:grid;gap:8px}
       <div class="factline">
         <span><span class="k" data-i18n="pos">Поз.</span><span id="shLoc"></span></span>
         <span><span class="k" data-i18n="round">Обход</span><span id="shSlot"></span></span>
+        <span id="shPortsBox"><span class="k">LP→DP</span><span id="shPorts"></span></span>
       </div>
     </div>
     <div class="cam" id="camBlock">
@@ -385,7 +390,7 @@ const I18N={
 ru:{sub_empty:"Список риферов пуст",done_lbl:"сделано",vessel:"Судно",round:"Обход",searchPh:"Последние цифры или позиция",settings:"Настройки",back:"Назад",
 fNot:"Не отмечены",fDone:"Отмечены",fAlarm:"Алармы",fAll:"Все",
 empty_h:"Список риферов пуст",empty_p:"Список загружает офицер: шестерёнка → «Для офицера» → «Загрузить список».",empty_btn:"Открыть настройки",
-nf_search:"Ничего не найдено.",nf_todo:"Все риферы этого обхода записаны.",nf_done:"В этом обходе ещё ничего не записано.",nf_flag:"В этом обходе нет алармов и отметок.",fDev:"Отклонения",nf_dev:"В обходе {0} нет отклонений supply от set point больше {1}.",
+nf_search:"Ничего не найдено.",dpAll:"Выгрузка: все порты",dpOne:"Выгрузка:",nf_todo:"Все риферы этого обхода записаны.",nf_done:"В этом обходе ещё ничего не записано.",nf_flag:"В этом обходе нет алармов и отметок.",fDev:"Отклонения",nf_dev:"В обходе {0} нет отклонений supply от set point больше {1}.",
 notrec:"не записан",alarm:"Аларм",mark:"Марк",pos:"Поз.",of:"из",
 shot:"Сфотографировать дисплей",zoom:"Приблизить",full:"Весь кадр",hintZoom:"Обведите пальцем экран рифера, чтобы приблизить",hintPick:"Обведите пальцем число {0} на фото",
 remarks:"Примечания",rmPh:"Попадёт в колонку REMARKS/ALARMS",recheck:"+ Перепроверка с текущим временем",clear:"Очистить показания этого обхода",
@@ -413,7 +418,7 @@ prevC:"Ранее переведено из °C ({0}).",cIn:"Ввод в °C. В
 en:{sub_empty:"Reefer list is empty",done_lbl:"done",vessel:"Vessel",round:"Round",searchPh:"Last digits or position",settings:"Settings",back:"Back",
 fNot:"Not done",fDone:"Done",fAlarm:"Alarms",fAll:"All",
 empty_h:"Reefer list is empty",empty_p:"The officer loads the list: gear → “Officer” → “Load list”.",empty_btn:"Open settings",
-nf_search:"Nothing found.",nf_todo:"All reefers of this round are recorded.",nf_done:"Nothing recorded in this round yet.",nf_flag:"No alarms or marks in this round.",fDev:"Off set point",nf_dev:"Round {0}: no supply more than {1} off set point.",
+nf_search:"Nothing found.",dpAll:"Discharge: all ports",dpOne:"Discharge:",nf_todo:"All reefers of this round are recorded.",nf_done:"Nothing recorded in this round yet.",nf_flag:"No alarms or marks in this round.",fDev:"Off set point",nf_dev:"Round {0}: no supply more than {1} off set point.",
 notrec:"not recorded",alarm:"Alarm",mark:"Mark",pos:"Pos.",of:"of",
 shot:"Photograph display",zoom:"Zoom",full:"Full frame",hintZoom:"Outline the reefer screen with your finger to zoom",hintPick:"Outline the {0} number on the photo",
 remarks:"Remarks",rmPh:"Goes to the REMARKS/ALARMS column",recheck:"+ Recheck with current time",clear:"Clear this round's readings",
@@ -675,7 +680,17 @@ async function exportXlsx(name){
 }
 
 /* ---------- list ---------- */
-let filter="todo";
+let filter="todo",dpFilter="";
+const lpOf=r=>String((r.extra&&r.extra.U)||"").trim().toUpperCase();
+const dpOf=r=>String((r.extra&&r.extra.V)||"").trim().toUpperCase();
+const portsText=r=>{const a=lpOf(r),b=dpOf(r);return a||b?(a||"?")+"→"+(b||"?"):""};
+function renderDpSel(){
+  const sel=$("#dpSel");const cnt={};S.reefers.forEach(r=>{const d=dpOf(r);if(d)cnt[d]=(cnt[d]||0)+1});
+  const keys=Object.keys(cnt).sort();if(dpFilter&&!cnt[dpFilter])dpFilter="";
+  sel.hidden=!keys.length;
+  sel.innerHTML=`<option value="">${esc(t("dpAll"))}</option>`+keys.map(k=>`<option value="${esc(k)}">${esc(t("dpOne"))} ${esc(k)} (${cnt[k]})</option>`).join("");
+  sel.value=dpFilter;sel.classList.toggle("on",!!dpFilter);
+}
 function renderHeader(){
   const n=S.reefers.length,done=S.reefers.filter(r=>isDone(r,S.slot)).length;
   $("#hdrCount").innerHTML=`${done}/${n}<small>${esc(t("done_lbl"))}</small>`;
@@ -689,7 +704,9 @@ function renderList(){
     el.innerHTML=`<div class="empty"><h2>${t("empty_h")}</h2><p>${t("empty_p")}</p><button class="btn primary" type="button" id="emptyOpen">${t("empty_btn")}</button></div>`;
     $("#emptyOpen").onclick=()=>openSettings();return;
   }
+  renderDpSel();
   let items=S.reefers.slice();
+  if(dpFilter)items=items.filter(r=>dpOf(r)===dpFilter);
   if(q){
     const key=r=>(r.cn+" "+r.loc).toUpperCase().replace(/\s+/g,"");
     items=items.filter(r=>key(r).includes(q));
@@ -709,7 +726,7 @@ function renderList(){
     const tags=(r.alarm?`<span class="tag alarm">${t("alarm")}${r.alarm.code?" "+esc(r.alarm.code):""}${sl(r.alarm)}</span>`:"")+(r.mark?`<span class="tag mark">${t("mark")}${sl(r.mark)}</span>`:"");
     const dv=devOf(r,S.slot);
     const vals=done?`<div${dv!=null?' class="devv"':""}><span class="lbl">Supply</span>${fmt(dU(x.sup))}${dv!=null?` <b>Δ${dv>0?"+":"−"}${fmt(Math.abs(P.unit==="C"?dv*5/9:dv))}</b>`:""}</div><div><span class="lbl">Return</span>${fmt(dU(x.ret))}</div>`:`<span class="todo">${t("notrec")}</span>`;
-    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span class="spb${isFrozen(r)?" frozen":""}">SP ${esc(spText(r))}</span>${tags}</span></button>`;
+    return `<button type="button" class="${cls}" data-id="${r.id}"><span class="cn">${esc(r.cn)}</span><span class="vals">${vals}</span><span class="meta"><span class="num">${esc(r.loc||"—")}</span><span class="spb${isFrozen(r)?" frozen":""}">SP ${esc(spText(r))}</span>${portsText(r)?`<span class="port">${esc(portsText(r))}</span>`:""}${tags}</span></button>`;
   }).join("");
 }
 function renderAll(){renderHeader();renderList()}
@@ -726,6 +743,7 @@ function openSheet(id){
   $("#shLoc").textContent=cur.loc||"—";
   $("#shSp").textContent=spText(cur);$("#spBox").classList.toggle("frozen",isFrozen(cur));
   $("#shSlot").textContent=SLOTS[S.slot].label;
+  $("#shPorts").textContent=portsText(cur);$("#shPortsBox").hidden=!portsText(cur);
   $("#inSup").value=initTxt.sup=draft.sup==null?"":fmt(dU(draft.sup));
   $("#inRet").value=initTxt.ret=draft.ret==null?"":fmt(dU(draft.ret));
   $("#photoBox").hidden=true;$("#ocrNote").innerHTML="";
@@ -918,6 +936,7 @@ $("#segLang").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.lang
 $("#segTheme").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.theme=b.dataset.v;savePrefs();applyTheme();renderSettings()};
 $("#segScan").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.scan=b.dataset.v==="1";savePrefs();applyPrefs();renderSettings()};
 $("#q").oninput=renderList;
+$("#dpSel").onchange=e=>{dpFilter=e.target.value;renderList()};
 document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));renderList()});
 document.querySelectorAll(".slots button").forEach(b=>b.onclick=()=>{S.slot=b.dataset.slot;persist();renderAll()});
 $("#list").onclick=e=>{const b=e.target.closest(".item");if(b)openSheet(b.dataset.id)};
